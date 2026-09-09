@@ -1,28 +1,53 @@
+"""Схемы проектов публичного API."""
+
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
+from app.schemas.base import APISchema
+
+
 class ProjectBase(BaseModel):
-    title: str = Field(..., min_length=3, max_length=120, description="Project title (3-120) chars")
-    description: Optional[str] = None
+    """Общие поля проекта."""
+
+    title: str = Field(
+        min_length=3,
+        max_length=120,
+        description="Название проекта, от 3 до 120 символов",
+        examples=["Реконструкция котельной"],
+    )
+    description: Optional[str] = Field(
+        default=None, max_length=2000, description="Описание проекта"
+    )
 
 
 class ProjectCreate(ProjectBase):
-    pass 
+    """Данные для создания проекта."""
 
 
 class ProjectUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=3, max_length=120)
-    description: Optional[str] = None
+    """Изменяемые атрибуты проекта; неуказанные поля не изменяются."""
+
+    title: Optional[str] = Field(
+        default=None, min_length=3, max_length=120, description="Новое название проекта"
+    )
+    description: Optional[str] = Field(
+        default=None, max_length=2000, description="Новое описание проекта"
+    )
 
 
-class ProjectRead(ProjectBase):
-    id: int
-    owner_id: int
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+class ProjectRead(APISchema):
+    """Карточка проекта."""
+
+    id: int = Field(description="Идентификатор проекта")
+    title: str = Field(description="Название проекта")
+    description: Optional[str] = Field(default=None, description="Описание проекта")
+    owner_id: int = Field(description="Идентификатор владельца проекта")
+    created_at: datetime = Field(description="Момент создания проекта")
+
 
 class ProjectReadWithOwner(ProjectRead):
-    owner_email: Optional[str] = None
+    """Карточка проекта с адресом владельца."""
+
+    owner_email: Optional[str] = Field(default=None, description="Адрес владельца проекта")
