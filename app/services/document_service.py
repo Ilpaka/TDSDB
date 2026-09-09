@@ -1,10 +1,13 @@
+"""Операции над документами и их версиями."""
+
 from datetime import datetime, timezone
 from typing import Optional
-from sqlmodel import Session, select, func
-from fastapi import HTTPException, status
+
+from sqlmodel import Session, func, select
 
 from app.core.audit import log_action
 from app.core.permissions import can_edit_project, can_view_project
+from app.core.problems import APIProblem, Problems
 from app.models.audit_log import EntityType
 from app.models.document import Document, DocumentStatus
 from app.models.document_version import DocumentVersion
@@ -13,51 +16,133 @@ from app.models.user import User
 from app.schemas.document import DocumentCreate, DocumentUpdate
 from app.schemas.document_version import DocumentVersionReadWithCreator
 
+ALLOWED_STATUS_TRANSITIONS: dict[DocumentStatus, set[DocumentStatus]] = {
+    DocumentStatus.draft: {DocumentStatus.published, DocumentStatus.archived},
+    DocumentStatus.published: {DocumentStatus.draft, DocumentStatus.archived},
+    DocumentStatus.archived: {DocumentStatus.draft},
+}
+"""Допустимые переходы состояния документа.
+
+Публикация архивированного документа запрещена: документ сначала
+возвращается в состояние черновика.
+"""
+
 
 class DocumentService:
+    """Создание, чтение, изменение, удаление документов и работа с версиями."""
+
     def __init__(self, session: Session):
         self.session = session
 
-    def get_by_id(self, doc_id: int) -> Optional[Document]:
-        return self.session.get(Document, doc_id)
-    
-    def _check_project_exists(self, project_id: int) -> Project:
+    def get_by_id(self, document_id: int) -> Optional[Document]:
+        """Вернуть документ по идентификатору."""
+        return self.session.get(Document, document_id)
+
+    def _require_project(self, project_id: int) -> Project:
+        """Вернуть проект или сообщить о его отсутствии.
+
+        Raises:
+            APIProblem: Если проект не существует.
+        """
         project = self.session.get(Project, project_id)
         if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
+            raise APIProblem(
+                Problems.PROJECT_NOT_FOUND,
+                f"Project {project_id} does not exist or is unavailable",
             )
         return project
-    
 
-    def _check_document_exists(self, doc_id: int) -> Document:
-        document = self.get_by_id(doc_id)
+    def _require_document(self, document_id: int) -> Document:
+        """Вернуть документ или сообщить о его отсутствии.
+
+        Raises:
+            APIProblem: Если документ не существует.
+        """
+        document = self.get_by_id(document_id)
         if not document:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document not found"
+            raise APIProblem(
+                Problems.DOCUMENT_NOT_FOUND,
+                f"Document {document_id} does not exist or is unavailable",
             )
         return document
-    
-    def _check_edit_permission(self, user: User, project_id: int) -> None:
+
+    def _require_edit_permission(self, user: User, project_id: int) -> None:
+        """Проверить право изменять документы проекта.
+
+        Raises:
+            APIProblem: Если у пользователя нет уровня доступа editor.
+        """
         if not can_edit_project(self.session, user, project_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Editor access required"
-            )
-        
-    def _check_view_permission(self, user: User, project_id: int) -> None:
-        """Check view permission on project."""
-        if not can_view_project(self.session, user, project_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied to this project"
+            raise APIProblem(
+                Problems.ACCESS_DENIED,
+                "Editor access to the project is required for this operation",
             )
 
-    def create_document(self, project_id: int, doc_data: DocumentCreate,  user: User) -> Document:
-        self._check_project_exists(project_id)
-        self._check_edit_permission(user, project_id)
+    def _require_view_access(self, user: User, project_id: int, document_id: int) -> None:
+        """Проверить право просматривать документы проекта.
+
+        Документ недоступного проекта представляется как несуществующий:
+        факт его наличия не раскрывается (правило STD-SEC-07).
+
+        Raises:
+            APIProblem: Если проект недоступен пользователю.
+        """
+        if not can_view_project(self.session, user, project_id):
+            raise APIProblem(
+                Problems.DOCUMENT_NOT_FOUND,
+                f"Document {document_id} does not exist or is unavailable",
+            )
+
+    def _require_project_view_access(self, user: User, project_id: int) -> None:
+        """Проверить право просматривать проект.
+
+        Raises:
+            APIProblem: Если проект недоступен пользователю.
+        """
+        if not can_view_project(self.session, user, project_id):
+            raise APIProblem(
+                Problems.PROJECT_NOT_FOUND,
+                f"Project {project_id} does not exist or is unavailable",
+            )
+
+    def _next_version_number(self, document_id: int) -> int:
+        """Вернуть номер следующей версии документа."""
+        statement = select(func.max(DocumentVersion.version)).where(
+            DocumentVersion.document_id == document_id
+        )
+        return (self.session.exec(statement).first() or 0) + 1
+
+    def _add_version(self, document: Document, user: User) -> DocumentVersion:
+        """Сохранить текущее содержимое документа как новую версию."""
+        version = DocumentVersion(
+            document_id=document.id,
+            version=self._next_version_number(document.id),
+            content_snapshot=document.content,
+            created_by=user.id,
+        )
+        self.session.add(version)
+        self.session.commit()
+        return version
+
+    def create_document(
+        self, project_id: int, doc_data: DocumentCreate, user: User
+    ) -> Document:
+        """Создать документ в проекте.
+
+        Args:
+            project_id: Идентификатор проекта.
+            doc_data: Название и содержимое документа.
+            user: Пользователь, выполняющий операцию.
+
+        Returns:
+            Созданный документ с первой сохранённой версией.
+
+        Raises:
+            APIProblem: Если проект не найден либо у пользователя нет прав
+                на изменение его документов.
+        """
+        self._require_project(project_id)
+        self._require_edit_permission(user, project_id)
 
         document = Document(
             project_id=project_id,
@@ -65,20 +150,13 @@ class DocumentService:
             content=doc_data.content or "",
             status=DocumentStatus.draft,
             created_by=user.id,
-            updated_by=user.id
+            updated_by=user.id,
         )
         self.session.add(document)
         self.session.commit()
         self.session.refresh(document)
 
-        version = DocumentVersion(
-            document_id=document.id,
-            version=1,
-            content_snapshot=document.content,
-            created_by=user.id
-        )
-        self.session.add(version)
-        self.session.commit()
+        self._add_version(document, user)
 
         log_action(
             session=self.session,
@@ -86,57 +164,118 @@ class DocumentService:
             action="create_document",
             entity_type=EntityType.document,
             entity_id=document.id,
-            meta={"title": document.title, "project_id": project_id}
+            meta={"title": document.title, "project_id": project_id},
         )
-        
+
         return document
 
+    def list_documents(
+        self,
+        project_id: int,
+        user: User,
+        offset: int = 0,
+        limit: int = 20,
+        document_status: Optional[DocumentStatus] = None,
+    ) -> tuple[list[Document], int]:
+        """Вернуть страницу документов проекта.
 
-    def list_documents(self, project_id: int, user: User, skip: int = 0, limit: int = 20) -> list[Document]:
-        self._check_project_exists(project_id)
-        self._check_view_permission(user, project_id)
+        Args:
+            project_id: Идентификатор проекта.
+            user: Пользователь, выполняющий запрос.
+            offset: Смещение от начала коллекции.
+            limit: Размер страницы.
+            document_status: Отбор по состоянию документа.
 
-        statement = select(Document).where(
-            Document.project_id == project_id
-        ).offset(skip).limit(limit)
-        return list(self.session.exec(statement).all())
-    
+        Returns:
+            Документы текущей страницы и общее количество документов.
 
-    def get_document(self, doc_id: int, user: User) -> Document:
-        document = self._check_document_exists(doc_id)
-        self._check_view_permission(user, document.project_id)
+        Raises:
+            APIProblem: Если проект не найден или недоступен пользователю.
+        """
+        self._require_project(project_id)
+        self._require_project_view_access(user, project_id)
+
+        conditions = [Document.project_id == project_id]
+        if document_status:
+            conditions.append(Document.status == document_status)
+
+        total = self.session.exec(
+            select(func.count()).select_from(Document).where(*conditions)
+        ).one()
+
+        statement = (
+            select(Document).where(*conditions).order_by(Document.id).offset(offset).limit(limit)
+        )
+
+        return list(self.session.exec(statement).all()), total
+
+    def get_document(self, document_id: int, user: User) -> Document:
+        """Вернуть документ, доступный пользователю.
+
+        Args:
+            document_id: Идентификатор документа.
+            user: Пользователь, выполняющий запрос.
+
+        Returns:
+            Карточка документа.
+
+        Raises:
+            APIProblem: Если документ не существует или недоступен.
+        """
+        document = self._require_document(document_id)
+        self._require_view_access(user, document.project_id, document_id)
         return document
-    
-    def update_document(self, doc_id: int, doc_data: DocumentUpdate, user: User) -> Document:
-        document = self._check_document_exists(doc_id)
-        self._check_edit_permission(user, document.project_id)
-        
+
+    def update_document(
+        self, document_id: int, doc_data: DocumentUpdate, user: User
+    ) -> Document:
+        """Изменить документ, включая его состояние.
+
+        Изменение содержимого приводит к созданию новой версии. Изменение
+        состояния допускается только по разрешённым переходам.
+
+        Args:
+            document_id: Идентификатор документа.
+            doc_data: Изменяемые атрибуты; неуказанные поля не изменяются.
+            user: Пользователь, выполняющий операцию.
+
+        Returns:
+            Изменённый документ.
+
+        Raises:
+            APIProblem: Если документ не найден, у пользователя нет прав
+                либо переход состояния недопустим.
+        """
+        document = self._require_document(document_id)
+        self._require_edit_permission(user, document.project_id)
+
         update_data = doc_data.model_dump(exclude_unset=True)
-        content_changed = False
+        new_status = update_data.get("status")
 
-        if "content" in update_data and update_data["content"] != document.content:
-            content_changed = True
+        if new_status and new_status != document.status:
+            if new_status not in ALLOWED_STATUS_TRANSITIONS[document.status]:
+                raise APIProblem(
+                    Problems.INVALID_STATE_TRANSITION,
+                    f"Document cannot be moved from {document.status.value} "
+                    f"to {new_status.value}",
+                )
+
+        content_changed = (
+            "content" in update_data and update_data["content"] != document.content
+        )
 
         for key, value in update_data.items():
             setattr(document, key, value)
-        
+
         document.updated_by = user.id
         document.updated_at = datetime.now(timezone.utc)
-        
+
         self.session.add(document)
         self.session.commit()
 
         if content_changed:
-            max_version = self._get_max_version(doc_id)
-            version = DocumentVersion(
-                document_id=doc_id,
-                version=max_version + 1,
-                content_snapshot=document.content,
-                created_by=user.id
-            )
-            self.session.add(version)
-            self.session.commit()
-        
+            self._add_version(document, user)
+
         self.session.refresh(document)
 
         log_action(
@@ -144,137 +283,171 @@ class DocumentService:
             user_id=user.id,
             action="update_document",
             entity_type=EntityType.document,
-            entity_id=doc_id,
+            entity_id=document_id,
             meta={
                 "updated_fields": list(update_data.keys()),
-                "content_changed": content_changed
-            }
+                "content_changed": content_changed,
+            },
         )
-        
+
         return document
-    
 
-    def _get_max_version(self, doc_id: int) -> int:
-        statement = select(func.max(DocumentVersion.version)).where(
-            DocumentVersion.document_id == doc_id
-        )
-        return self.session.exec(statement).first() or 0
+    def delete_document(self, document_id: int, user: User) -> None:
+        """Удалить документ вместе с его версиями.
 
+        Args:
+            document_id: Идентификатор документа.
+            user: Пользователь, выполняющий операцию.
 
-        #5 записей где среди внешний ключей
-        #  мы находим doc_id (конкретный документ который мы ищем в сущности)
+        Raises:
+            APIProblem: Если документ не найден либо у пользователя нет прав.
+        """
+        document = self._require_document(document_id)
+        self._require_edit_permission(user, document.project_id)
 
-        #среди найденных 5 записей функция max находит максимальное значние 
-        # из всех полей .version 
-        #5 or 0 
+        versions = self.session.exec(
+            select(DocumentVersion).where(DocumentVersion.document_id == document_id)
+        ).all()
+        for version in versions:
+            self.session.delete(version)
 
-        # SELECT MAX(version) 
-        # FROM document_versions 
-        # WHERE document_id == doc_id
-
-    
-    def change_status(self, doc_id: int, new_status: DocumentStatus, user: User) -> Document:
-        document = self._check_document_exists(doc_id)
-        self._check_edit_permission(user, document.project_id)
-
-        old_status = document.status
-        document.status = new_status
-        document.updated_by = user.id
-        document.updated_at = datetime.now(timezone.utc)
-        
-        self.session.add(document)
+        project_id = document.project_id
+        self.session.delete(document)
         self.session.commit()
-        self.session.refresh(document)
 
-
-        action_name = f"{new_status.value}_document"
         log_action(
             session=self.session,
             user_id=user.id,
-            action=action_name,
+            action="delete_document",
             entity_type=EntityType.document,
-            entity_id=doc_id,
-            meta={"old_status": old_status.value, "new_status": new_status.value}
+            entity_id=document_id,
+            meta={"project_id": project_id},
         )
-        
-        return document
-    
-    def list_versions(self, doc_id: int, user: User) -> list[DocumentVersionReadWithCreator]:
-        document = self._check_document_exists(doc_id)
-        self._check_view_permission(user, document.project_id)
-        
-        statement = select(DocumentVersion).where(
-            DocumentVersion.document_id == doc_id
-        ).order_by(DocumentVersion.version.desc())
+
+    def list_versions(
+        self, document_id: int, user: User, offset: int = 0, limit: int = 20
+    ) -> tuple[list[DocumentVersionReadWithCreator], int]:
+        """Вернуть страницу версий документа.
+
+        Args:
+            document_id: Идентификатор документа.
+            user: Пользователь, выполняющий запрос.
+            offset: Смещение от начала коллекции.
+            limit: Размер страницы.
+
+        Returns:
+            Версии текущей страницы в порядке убывания номера и общее
+            количество версий.
+
+        Raises:
+            APIProblem: Если документ не существует или недоступен.
+        """
+        document = self._require_document(document_id)
+        self._require_view_access(user, document.project_id, document_id)
+
+        total = self.session.exec(
+            select(func.count())
+            .select_from(DocumentVersion)
+            .where(DocumentVersion.document_id == document_id)
+        ).one()
+
+        statement = (
+            select(DocumentVersion)
+            .where(DocumentVersion.document_id == document_id)
+            .order_by(DocumentVersion.version.desc())
+            .offset(offset)
+            .limit(limit)
+        )
         versions = self.session.exec(statement).all()
 
-
-        result = []
-        for ver in versions:
-            creator = self.session.get(User, ver.created_by)
-            result.append(DocumentVersionReadWithCreator(
-                id=ver.id,
-                document_id=ver.document_id,
-                version=ver.version,
-                content_snapshot=ver.content_snapshot,
-                created_by=ver.created_by,
-                created_at=ver.created_at,
-                creator_email=creator.email if creator else None
-            ))
-        
-        return result
-    
-
-    def get_version(self, doc_id: int, version: int, user: User) -> DocumentVersion:
-        document = self._check_document_exists(doc_id)
-        self._check_view_permission(user, document.project_id)
-        
-        statement = select(DocumentVersion).where(
-            DocumentVersion.document_id == doc_id,
-            DocumentVersion.version == version
-        )
-        ver = self.session.exec(statement).first()
-        
-        if not ver:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Version not found"
+        items = []
+        for version in versions:
+            creator = self.session.get(User, version.created_by)
+            items.append(
+                DocumentVersionReadWithCreator(
+                    id=version.id,
+                    document_id=version.document_id,
+                    version=version.version,
+                    content_snapshot=version.content_snapshot,
+                    created_by=version.created_by,
+                    created_at=version.created_at,
+                    creator_email=creator.email if creator else None,
+                )
             )
-        
-        return ver
-    
-    def restore_version(self, doc_id: int, version: int, user: User) -> Document:
-        document = self._check_document_exists(doc_id)
-        self._check_edit_permission(user, document.project_id)
 
+        return items, total
+
+    def get_version(self, document_id: int, version: int, user: User) -> DocumentVersion:
+        """Вернуть конкретную версию документа.
+
+        Args:
+            document_id: Идентификатор документа.
+            version: Номер версии.
+            user: Пользователь, выполняющий запрос.
+
+        Returns:
+            Запрошенная версия документа.
+
+        Raises:
+            APIProblem: Если документ или версия не найдены либо документ
+                недоступен пользователю.
+        """
+        document = self._require_document(document_id)
+        self._require_view_access(user, document.project_id, document_id)
+
+        return self._require_version(document_id, version)
+
+    def _require_version(self, document_id: int, version: int) -> DocumentVersion:
+        """Вернуть версию документа или сообщить о её отсутствии.
+
+        Raises:
+            APIProblem: Если версия не существует.
+        """
         statement = select(DocumentVersion).where(
-            DocumentVersion.document_id == doc_id,
-            DocumentVersion.version == version
+            DocumentVersion.document_id == document_id,
+            DocumentVersion.version == version,
         )
-        ver = self.session.exec(statement).first()
-        
-        if not ver:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Version not found"
+        stored = self.session.exec(statement).first()
+
+        if not stored:
+            raise APIProblem(
+                Problems.VERSION_NOT_FOUND,
+                f"Version {version} of document {document_id} does not exist",
             )
-        
-        document.content = ver.content_snapshot
+
+        return stored
+
+    def restore_version(self, document_id: int, version: int, user: User) -> Document:
+        """Восстановить содержимое документа из указанной версии.
+
+        Восстановление не изменяет историю: текущее содержимое заменяется
+        снимком выбранной версии и сохраняется как новая версия.
+
+        Args:
+            document_id: Идентификатор документа.
+            version: Номер восстанавливаемой версии.
+            user: Пользователь, выполняющий операцию.
+
+        Returns:
+            Документ с восстановленным содержимым.
+
+        Raises:
+            APIProblem: Если документ или версия не найдены либо
+                у пользователя нет прав на изменение.
+        """
+        document = self._require_document(document_id)
+        self._require_edit_permission(user, document.project_id)
+
+        stored = self._require_version(document_id, version)
+
+        document.content = stored.content_snapshot
         document.updated_by = user.id
         document.updated_at = datetime.now(timezone.utc)
-        
+
         self.session.add(document)
         self.session.commit()
 
-        max_version = self._get_max_version(doc_id)
-        new_version = DocumentVersion(
-            document_id=doc_id,
-            version=max_version + 1,
-            content_snapshot=document.content,
-            created_by=user.id
-        )
-        self.session.add(new_version)
-        self.session.commit()
+        created = self._add_version(document, user)
         self.session.refresh(document)
 
         log_action(
@@ -282,8 +455,8 @@ class DocumentService:
             user_id=user.id,
             action="restore_version",
             entity_type=EntityType.document,
-            entity_id=doc_id,
-            meta={"restored_version": version, "new_version": max_version + 1}
+            entity_id=document_id,
+            meta={"restored_version": version, "new_version": created.version},
         )
-        
+
         return document
