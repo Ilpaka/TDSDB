@@ -1,16 +1,26 @@
+"""Точка входа приложения Document Center API.
+
+Модуль создаёт экземпляр FastAPI, регистрирует обработчики ошибок формата
+Problem Details и подключает бизнес-роутеры под префиксом публичного
+контракта ``/api/v1`` (правила STD-VER-01 и STD-VER-02 стандарта
+API_STANDARD). Служебные операции остаются вне версии.
+"""
+
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.problems import register_problem_handlers
 from app.db.session import create_db_and_tables
-
-from app.routers import documents, projects, users, auth, access, auditlog
+from app.routers import access, auditlog, auth, documents, projects, users
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Подготовить хранилище при запуске приложения."""
     create_db_and_tables()
     yield
 
@@ -56,29 +66,41 @@ def setup_cors_middleware():
         max_age=600,
     )
 
-@app.get("/", tags=["Root"])
+@app.get("/", tags=["Root"], operation_id="get_service_info")
 def root():
+    """Вернуть метаданные сервиса и адреса документации."""
     return {
             "name": settings.APP_NAME,
             "version": settings.APP_VERSION,
+            "api_version": "v1",
+            "base_path": settings.API_V1_PREFIX,
             "docs": "/docs",
-            "redoc": "/redoc"
+            "redoc": "/redoc",
+            "openapi": "/openapi.json",
         }
 
-@app.get("/health", tags=["Health"])
+@app.get("/health", tags=["Health"], operation_id="get_health")
 def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
 
-def main():
-    setup_cors_middleware()
+def setup_routers() -> None:
+    """Подключить бизнес-роутеры под префиксом публичного контракта."""
+    prefix = settings.API_V1_PREFIX
 
-    app.include_router(users.router)
-    app.include_router(auth.router)
-    app.include_router(projects.router)
-    app.include_router(access.router)
-    app.include_router(documents.router)
-    app.include_router(auditlog.router)
+    app.include_router(users.router, prefix=prefix)
+    app.include_router(auth.router, prefix=prefix)
+    app.include_router(projects.router, prefix=prefix)
+    app.include_router(access.router, prefix=prefix)
+    app.include_router(documents.router, prefix=prefix)
+    app.include_router(auditlog.router, prefix=prefix)
+
+
+def main() -> None:
+    """Собрать приложение: middleware, обработчики ошибок и маршруты."""
+    setup_cors_middleware()
+    register_problem_handlers(app)
+    setup_routers()
 
 
 main()
