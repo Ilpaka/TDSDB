@@ -1,29 +1,39 @@
+"""Схемы управления доступом к проектам."""
+
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+
+from pydantic import BaseModel, Field
 
 from app.models.project_access import Permission
+from app.schemas.base import APISchema
 
 
-class ProjectAccessBase(BaseModel):
-    user_id: int
-    permission: Permission = Permission.viewer
+class ProjectAccessUpsert(BaseModel):
+    """Тело запроса на выдачу или изменение доступа."""
+
+    permission: Permission = Field(
+        default=Permission.viewer,
+        description="Уровень доступа участника к проекту",
+        examples=["editor"],
+    )
 
 
-class ProjectAccessCreate(ProjectAccessBase):
-    pass 
+class ProjectAccessRead(APISchema):
+    """Запись о выданном доступе."""
 
-class ProjectAccessRead(BaseModel):
-    id: int
-    project_id: int
-    user_id: int
-    permission: Permission
-    granted_by: int
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+    id: int = Field(description="Идентификатор записи о доступе")
+    project_id: int = Field(description="Идентификатор проекта")
+    user_id: int = Field(description="Идентификатор участника")
+    permission: Permission = Field(description="Уровень доступа")
+    granted_by: int = Field(description="Идентификатор пользователя, выдавшего доступ")
+    created_at: datetime = Field(description="Момент выдачи доступа")
+
 
 class ProjectAccessReadWithUser(ProjectAccessRead):
-    user_email: Optional[str] = None
-    granter_email: Optional[str] = None
+    """Запись о доступе с адресами участника и выдавшего доступ."""
+
+    user_email: Optional[str] = Field(default=None, description="Адрес участника")
+    granter_email: Optional[str] = Field(
+        default=None, description="Адрес пользователя, выдавшего доступ"
+    )
