@@ -1,69 +1,83 @@
-from datetime import datetime, date
+"""Операции чтения журнала действий пользователей."""
+
+from datetime import date
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
-from sqlmodel import Session, select
 
-from app.core.security import require_admin
-from app.db.session import get_session
-from app.models.audit_log import AuditLog, EntityType
-from app.models.user import User
-from app.schemas.audit_log import AuditLogFilter, AuditLogReadWithUser
+from fastapi import APIRouter, Query, status
 
+from app.core.deps import AdminUser, Pagination, SessionDep
+from app.core.problems import Problems, problem_responses
+from app.models.audit_log import EntityType
+from app.schemas.audit_log import AuditLogReadWithUser
+from app.schemas.pagination import Page
+from app.services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit", tags=["Audit"])
 
 
-@router.get("", response_model=list[AuditLogReadWithUser])
+@router.get(
+    "",
+    response_model=Page[AuditLogReadWithUser],
+    status_code=status.HTTP_200_OK,
+    summary="Получить журнал действий",
+    response_description="Страница записей журнала, отсортированная по убыванию времени",
+    operation_id="list_audit_logs",
+    responses=problem_responses(
+        Problems.AUTHENTICATION_REQUIRED,
+        Problems.ACCESS_DENIED,
+        Problems.VALIDATION_ERROR,
+    ),
+)
 def list_audit_logs(
-    date_from: Optional[date] = Query(default=None, description="Filter from date"),
-    date_to: Optional[date] = Query(default=None, description="Filter to date"),
-    user_id: Optional[int] = Query(default=None, description="Filter by user ID"),
-    action: Optional[str] = Query(default=None, description="Filter by action"),
-    entity_type: Optional[EntityType] = Query(default=None, description="Filter by entity type"),
-    skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
-    session: Session = Depends(get_session),
-    current_user: User = Depends(require_admin)
-):
-    statement = select(AuditLogFilter)
+    session: SessionDep,
+    current_user: AdminUser,
+    pagination: Pagination,
+    date_from: Optional[date] = Query(
+        default=None, description="Нижняя граница периода включительно"
+    ),
+    date_to: Optional[date] = Query(
+        default=None, description="Верхняя граница периода включительно"
+    ),
+    user_id: Optional[int] = Query(
+        default=None, ge=1, description="Идентификатор пользователя, выполнившего действие"
+    ),
+    action: Optional[str] = Query(
+        default=None, min_length=1, max_length=100, description="Точное наименование действия"
+    ),
+    entity_type: Optional[EntityType] = Query(
+        default=None, description="Тип сущности, к которой относится действие"
+    ),
+) -> Page[AuditLogReadWithUser]:
+    """Вернуть записи журнала действий пользователей.
 
-    if date_from:
-        dt_from = datetime.combine(date_from, datetime.min.time())
-        statement = statement.where(AuditLog.created_at >= dt_from)
+    Операция доступна только администратору.
 
-    if date_to:
-        dt_to = datetime.combine(date_to, datetime.max.time())
-        statement = statement.where(AuditLog.created_at <= dt_to)
+    Args:
+        session: Сессия базы данных.
+        current_user: Аутентифицированный администратор.
+        pagination: Параметры постраничного обхода.
+        date_from: Нижняя граница периода включительно.
+        date_to: Верхняя граница периода включительно.
+        user_id: Идентификатор пользователя, выполнившего действие.
+        action: Точное наименование действия.
+        entity_type: Тип сущности, к которой относится действие.
 
-    if user_id:
-        statement = statement.where(AuditLog.user_id == user_id)
-    
-    if action:
-        statement = statement.where(AuditLog.action == action)
-    
-    if entity_type:
-        statement = statement.where(AuditLog.entity_type == entity_type)
-    
-    
-    statement = statement.order_by(AuditLog.created_at.desc())
-    statement = statement.offset(skip).limit(limit)
-
-    logs = session.exec(statement).all()
-
-
-    result = []
-    for log in logs:
-        user = session.get(User, log.user_id)
-        result.append(AuditLogReadWithUser(
-            id=log.id,
-            user_id=log.user_id,
-            action=log.action,
-            entity_type=log.entity_type,
-            entity_id=log.entity_id,
-            meta=log.meta,
-            created_at=log.created_at,
-            user_email=user.email if user else None
-        ))
-    
-    return result
-
+    Returns:
+        Страница записей журнала с метаданными пагинации.
+    """
+    service = AuditService(session)
+    items, total = service.list_logs(
+        offset=pagination.offset,
+        limit=pagination.limit,
+        date_from=date_from,
+        date_to=date_to,
+        user_id=user_id,
+        action=action,
+        entity_type=entity_type,
+    )
+    return Page(
+        items=items,
+        total=total,
+        offset=pagination.offset,
+        limit=pagination.limit,
+    )

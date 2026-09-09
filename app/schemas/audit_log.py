@@ -1,41 +1,50 @@
-from datetime import datetime, date
+"""Схемы журнала действий пользователей."""
+
+from datetime import date, datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 from app.models.audit_log import EntityType
+from app.schemas.base import APISchema
 
 
-class AuditLogBase(BaseModel):
-    action: str
-    entity_type: EntityType
-    entity_id: Optional[int] = None
-    meta: Optional[str] = None
+class AuditLogBase(APISchema):
+    """Общие поля записи журнала."""
+
+    action: str = Field(description="Выполненное действие", examples=["grant_access"])
+    entity_type: EntityType = Field(description="Тип сущности, к которой относится действие")
+    entity_id: Optional[int] = Field(default=None, description="Идентификатор сущности")
+    meta: Optional[str] = Field(default=None, description="Дополнительные сведения в формате JSON")
 
 
 class AuditLogCreate(AuditLogBase):
-        user_id: int
+    """Запись, добавляемая в журнал."""
+
+    user_id: int = Field(description="Идентификатор пользователя, выполнившего действие")
 
 
 class AuditLogRead(AuditLogBase):
-    id: int
-    user_id: int
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
+    """Запись журнала."""
+
+    id: int = Field(description="Идентификатор записи")
+    user_id: int = Field(description="Идентификатор пользователя, выполнившего действие")
+    created_at: datetime = Field(description="Момент выполнения действия")
+
 
 class AuditLogReadWithUser(AuditLogRead):
-     user_email: Optional[str] = None
+    """Запись журнала с адресом пользователя."""
+
+    user_email: Optional[str] = Field(
+        default=None, description="Адрес пользователя, выполнившего действие"
+    )
 
 
 class AuditLogFilter(BaseModel):
+    """Условия отбора записей журнала."""
+
     date_from: Optional[date] = None
     date_to: Optional[date] = None
     user_id: Optional[int] = None
     action: Optional[str] = None
     entity_type: Optional[EntityType] = None
-
-
-class PaginationParams(BaseModel):
-    skip: int = Field(default=0, ge=0)
-    limit: int = Field(default=20, ge=1, le=100)
