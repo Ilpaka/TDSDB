@@ -1,5 +1,5 @@
 
-const API_URL = 'http://localhost:8000';
+const API_URL = 'http://localhost:8000/api/v1';
 
 let state = {
     token: localStorage.getItem('token') || null,
