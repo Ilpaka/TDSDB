@@ -42,12 +42,18 @@ app = FastAPI(
     )
 
 def setup_cors_middleware():
+    """Настроить CORS по списку origin, заданному средой исполнения.
+
+    Безусловный wildcard не применяется: перечень разрешённых origin
+    определяется параметром ``CORS_ORIGINS`` и проверяется при старте.
+    """
     app.add_middleware(
-        CORSMiddleware, 
-        allow_origins=["*"],
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"]
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+        max_age=600,
     )
 
 @app.get("/", tags=["Root"])
