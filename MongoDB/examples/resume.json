@@ -1,0 +1,118 @@
+{
+  "full_name": "Панов Илья Сергеевич",
+  "title": "Golang-разработчик",
+  "location": "Санкт-Петербург",
+  "employment": {
+    "type": "полная занятость",
+    "formats": ["удалённо", "гибрид", "офис"]
+  },
+  "contacts": {
+    "phone": "+7 (908) 690-82-90",
+    "email": "ilyapanov07@mail.ru",
+    "telegram": "@Pilya_07",
+    "github": "github.com/Ilpaka"
+  },
+  "summary": "Go-разработчик с 3+ годами продакшн-опыта в платёжных системах и AI-движках матчинга под нагрузкой. Проектирую событийные микросервисы на Go и Kafka, владею системой целиком: от архитектуры и контрактов API до CI/CD и мониторинга. Вёл команду из 5 бэкенд-инженеров. Ускорил AI-матчинг в 9,5 раза (с 14,3 до 1,5 секунды) и генерацию отчётов в 36 раз (с 3 минут до 5 секунд), сервис уведомлений выдержал ~10 000 событий/с через Kafka в нагрузочных тестах. Также пишу на Python (FastAPI): спроектировал и реализовал бэкенд платформы из 13 модулей.",
+  "total_experience": "3 года 7 месяцев",
+  "experience": [
+    {
+      "company": "Terra nostra camp",
+      "position": "Backend Developer (Go)",
+      "start": "2026-02",
+      "end": null,
+      "location": "Москва (удалённо)",
+      "description": "Гео-социальная спортивная платформа с матчмейкингом и рейтингами",
+      "achievements": [
+        "Разрабатываю микросервисы на Go: gRPC/Protobuf для внутреннего взаимодействия, REST для внешних клиентов; событийная архитектура на Outbox Pattern с идемпотентными консьюмерами.",
+        "Построил сервис уведомлений на Kafka: партиционированные топики, consumer groups, dead-letter топики; нагрузочные тесты k6 до ~10K событий/с; мониторинг Prometheus + Grafana.",
+        "Поддерживаю покрытие тестами ~70% на ключевых сервисах; оптимизирую PostgreSQL под высококардинальные данные (индексы, планы запросов)."
+      ]
+    },
+    {
+      "company": "Карьерный центр (NDA)",
+      "position": "Backend Engineer (контракт)",
+      "start": "2026-08",
+      "end": null,
+      "location": "Санкт-Петербург",
+      "description": "Платформа для студентов и компаний-партнёров. Единственный бэкенд-разработчик",
+      "achievements": [
+        "Модульный монолит на Python/FastAPI из 13 модулей: границы между модулями зафиксированы контрактами и проверяются линтером в CI. Интеграционные тесты PostgreSQL, Redis и S3 в контейнерах.",
+        "Transactional outbox поверх PostgreSQL: событие и данные в одной транзакции, ретраи с backoff, DLQ. Брокер сообщений на этом масштабе не оправдан.",
+        "Сессии в Redis с мгновенным отзывом вместо JWT; сессионный и кэшевый Redis разнесены, вытеснение кэша не задевает живые сессии. Сквозные таймауты от nginx до внешних API с circuit breaker: отказ любого уровня даёт быстрый ответ, а не зависший запрос."
+      ]
+    },
+    {
+      "company": "NextUp",
+      "position": "Backend Developer (Go)",
+      "start": "2025-01",
+      "end": "2026-02",
+      "location": "Москва (удалённо)",
+      "description": "B2B/B2C-маркетплейс, соединяющий клиентов с SMM-специалистами",
+      "achievements": [
+        "Разрабатывал бэкенд маркетплейса из 13 микросервисов; ускорил AI-подбор с 14,3 до 1,5 с, переписав его в гибридный пайплайн (rule-based ранжирование + LLM).",
+        "Вёл команду из 5 бэкенд-инженеров: ревью кода, контракты API, приёмка задач.",
+        "Сделал платёжный сервис: интеграция с ЮKassa, идемпотентность вебхуков, транзакции на state-machine, возвраты и сверка.",
+        "Построил асинхронный слой на RabbitMQ и Redis с DLQ и real-time чат на WebSockets; настраивал CI/CD и мониторинг."
+      ]
+    },
+    {
+      "company": "ФГБУ ВНИИОкеангеология",
+      "position": "Backend Engineer (контракт)",
+      "start": "2025-10",
+      "end": "2025-12",
+      "location": "Санкт-Петербург",
+      "description": "Внутренняя аналитика посещаемости для 700+ сотрудников",
+      "achievements": [
+        "Ускорил генерацию отчётов с ~3 минут до 5 секунд: переписал запросы, добавил материализованные агрегаты и кэширование в Redis.",
+        "Разобрался в легаси-схеме Firebird 2.5 (8M+ записей) и обернул её в безопасный слой; защитил API через JWT, RBAC и rate limiting."
+      ]
+    },
+    {
+      "company": "Freelance",
+      "position": "Backend Developer",
+      "start": "2023-02",
+      "end": "2025-01",
+      "location": null,
+      "description": null,
+      "achievements": [
+        "Telegram-боты по подписке (доступ, автопродления, админ-панели) и движок рассылок на 10K+ пользователей; сайты на Go, интеграции с CRM и платёжными провайдерами."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "gomsg",
+      "description": "Бэкенд мессенджера на Go и Kafka. Transaction Outbox с батчевой обработкой, fan-out через consumer groups, одноразовые WebSocket-тикеты в Redis, 18 Prometheus-коллекторов, Grafana и Loki, CI с race detector.",
+      "url": "github.com/Ilpaka/gomsg"
+    },
+    {
+      "name": "Pidisk",
+      "description": "Кроссплатформенный SFTP-менеджер с двусторонней синхронизацией. Гексагональная архитектура (~5,7K строк), движок синхронизации на fsnotify и diff дерева; Ed25519, секреты в OS keyring, TOFU-проверка host-key.",
+      "url": "github.com/Ilpaka/Pidisk_open_source"
+    },
+    {
+      "name": "VibeMeet",
+      "description": "Платформа видеовстреч поверх LiveKit (WebRTC SFU): оркестрация комнат, медиа-токены, демонстрация экрана, чат. Self-hosted в Docker за Nginx/TLS.",
+      "url": "github.com/Ilpaka/Vibemeet_open_source"
+    }
+  ],
+  "skills": {
+    "languages_and_web": ["Go (Gin, net/http)", "Python (FastAPI, SQLAlchemy)", "C++ (базовый)", "gRPC/Protobuf", "REST", "OpenAPI/Swagger", "WebSockets"],
+    "data": ["PostgreSQL", "Redis", "SQL", "миграции", "S3-хранилища"],
+    "queues": ["Kafka", "RabbitMQ"],
+    "infrastructure": ["Docker", "Kubernetes", "CI/CD", "Nginx", "Linux", "Prometheus", "Grafana"],
+    "architecture": ["микросервисы", "модульный монолит", "событийная архитектура", "Clean Architecture", "System Design"],
+    "reliability_and_testing": ["идемпотентность", "circuit breaker", "graceful degradation", "unit / integration testing", "нагрузочное тестирование (k6)", "race detector"]
+  },
+  "education": [
+    {
+      "institution": "Академия IT TOP",
+      "degree": "СПО",
+      "specialty": "Разработка программного обеспечения",
+      "graduation_year": 2027
+    }
+  ],
+  "languages": [
+    { "language": "Английский", "level": "B2" }
+  ]
+}

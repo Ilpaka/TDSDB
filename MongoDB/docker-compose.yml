@@ -1,0 +1,23 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: tdsdb-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-root}
+    volumes:
+      - mongo_data:/data/db
+      # init-скрипты отрабатывают только при первом старте (пустой volume)
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - ../lesson-01/seed.json:/seed/servers.json:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
