@@ -170,3 +170,14 @@ def test_descriptions_hide_internal_docstring_sections(schema):
         description = operation.get("description", "")
         assert "Args:" not in description, (method, path)
         assert "session" not in description, (method, path)
+
+
+def test_protected_operations_state_required_access(schema):
+    """STD-SEC-04: требуемая роль или уровень доступа указаны в описании."""
+    markers = ("администратор", "владельц", "доступ", "admin", "manager", "editor", "viewer")
+
+    for method, path, operation in _operations(schema):
+        if (method, path) in PUBLIC_OPERATIONS:
+            continue
+        description = operation["description"].lower()
+        assert any(marker in description for marker in markers), (method, path)

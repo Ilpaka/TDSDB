@@ -63,6 +63,8 @@ def login(session: SessionDep, credentials: UserLogin) -> Token:
 def get_me(current_user: CurrentUser) -> UserRead:
     """Вернуть карточку пользователя, которому принадлежит токен.
 
+    Операция доступна любому аутентифицированному пользователю.
+
     \f
 
     Args:

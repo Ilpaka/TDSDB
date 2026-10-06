@@ -43,6 +43,8 @@ def list_project_documents(
 ) -> Page[DocumentRead]:
     """Вернуть документы проекта, доступного пользователю.
 
+    Требуется доступ к проекту уровня viewer или editor.
+
     \f
 
     Args:
@@ -133,6 +135,8 @@ def get_document(
 
     Документ недоступного проекта представляется как несуществующий.
 
+    Требуется доступ к проекту уровня viewer или editor.
+
     \f
 
     Args:
@@ -209,6 +213,8 @@ def delete_document(
 ) -> None:
     """Удалить документ вместе со всеми его версиями.
 
+    Требуется доступ к проекту уровня editor.
+
     \f
 
     Args:
@@ -240,6 +246,8 @@ def list_document_versions(
     document_id: int = Path(description="Идентификатор документа", ge=1),
 ) -> Page[DocumentVersionReadWithCreator]:
     """Вернуть сохранённые версии документа.
+
+    Требуется доступ к проекту уровня viewer или editor.
 
     \f
 
@@ -291,6 +299,8 @@ def restore_document_version(
     текущим и сохраняется как новая версия. Требуется уровень доступа
     editor.
 
+    Требуется доступ к проекту уровня editor.
+
     \f
 
     Args:
@@ -327,6 +337,8 @@ def get_document_version(
     version: int = Path(description="Порядковый номер версии", ge=1),
 ) -> DocumentVersionRead:
     """Вернуть конкретную версию документа.
+
+    Требуется доступ к проекту уровня viewer или editor.
 
     \f
 
