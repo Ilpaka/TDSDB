@@ -1,3 +1,5 @@
+"""Модель записи журнала действий."""
+
 from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
 from enum import Enum
@@ -5,12 +7,16 @@ from enum import Enum
 from sqlmodel import SQLModel, Field, Relationship
 
 class EntityType(str, Enum):
+    """Тип сущности, к которой относится действие: user, project, document или access."""
+
     user = "user"
     project = "project"
     document = "document"
     access = "access"
 
 class AuditLog(SQLModel, table=True):
+    """Запись о действии пользователя."""
+
     __tablename__ = "audit_logs"
 
     id: Optional[int] = Field(default=None, primary_key=True)

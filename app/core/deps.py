@@ -41,6 +41,7 @@ def require_roles(*allowed_roles: UserRole) -> Callable[..., User]:
     """
 
     def role_guard(current_user: CurrentUser) -> User:
+        """Пропустить пользователя с разрешённой ролью либо вернуть 403."""
         if current_user.role not in allowed_roles:
             raise APIProblem(
                 Problems.ACCESS_DENIED,

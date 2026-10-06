@@ -1,3 +1,5 @@
+"""Модель доступа участника к проекту."""
+
 from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
 from enum import Enum
@@ -5,11 +7,15 @@ from enum import Enum
 from sqlmodel import SQLModel, Field, Relationship
 
 class Permission(str, Enum):
+    """Уровень доступа к проекту: viewer (чтение) или editor (изменение)."""
+
     viewer = "viewer"
     editor = "editor"
 
 
 class ProjectAccess(SQLModel, table=True):
+    """Запись о доступе пользователя к проекту."""
+
     __tablename__ = "project_accesses"
 
     id: Optional[int] = Field(default=None, primary_key=True)

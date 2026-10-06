@@ -1,4 +1,6 @@
-from datetime import datetime, timezone 
+"""Модель учётной записи пользователя."""
+
+from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
 from enum import Enum 
 
@@ -7,6 +9,8 @@ from sqlmodel import SQLModel, Field, Relationship
 
 
 class UserRole(str, Enum):
+    """Роль пользователя: admin, manager, worker или viewer."""
+
     admin = "admin"
     manager = "manager"
     worker = "worker"
@@ -14,6 +18,11 @@ class UserRole(str, Enum):
 
 
 class User(SQLModel, table=True):
+    """Учётная запись пользователя.
+
+    Хэш пароля хранится только в модели хранилища и не входит в схемы ответа.
+    """
+
     __tablename__ = "users"
 
     id: Optional[int] = Field(default=None, primary_key=True)

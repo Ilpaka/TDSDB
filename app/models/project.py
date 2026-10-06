@@ -1,10 +1,13 @@
+"""Модель проекта."""
+
 from datetime import datetime, timezone
 from typing import Optional, List, TYPE_CHECKING
 
-from sqlalchemy import table
 from sqlmodel import SQLModel, Field, Relationship
 
 class Project(SQLModel, table=True):
+    """Проект — контейнер документов и единица разграничения доступа."""
+
     __tablename__ = "projects"
 
     id: Optional[int] = Field(default=None, primary_key=True)

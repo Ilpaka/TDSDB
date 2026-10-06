@@ -1,10 +1,14 @@
-from datetime import datetime, timezone 
+"""Модель сохранённой версии документа."""
+
+from datetime import datetime, timezone
 from typing import Optional, TYPE_CHECKING
 
 from sqlmodel import SQLModel, Field, Relationship
 
 
 class DocumentVersion(SQLModel, table=True):
+    """Снимок содержимого документа с порядковым номером."""
+
     __tablename__ = "document_versions"
 
     id: Optional[int] = Field(default=None, primary_key=True)

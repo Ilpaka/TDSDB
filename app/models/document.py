@@ -1,4 +1,6 @@
-from datetime import datetime, timezone 
+"""Модель документа проекта."""
+
+from datetime import datetime, timezone
 
 from typing import Optional, TYPE_CHECKING
 from enum import Enum
@@ -6,12 +8,16 @@ from enum import Enum
 from sqlmodel import SQLModel, Field, Relationship
 
 class DocumentStatus(str, Enum):
+    """Состояние жизненного цикла документа: draft, published или archived."""
+
     draft = "draft"
     published = "published"
     archived = "archived"
 
 
 class Document(SQLModel, table=True):
+    """Документ, принадлежащий проекту."""
+
     __tablename__ = "documents"
 
     id: Optional[int] = Field(default=None, primary_key=True)

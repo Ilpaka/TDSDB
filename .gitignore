@@ -61,3 +61,6 @@ Thumbs.db
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Documentation build
+docs/build/
