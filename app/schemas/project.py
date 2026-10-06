@@ -1,11 +1,10 @@
 """Схемы проектов публичного API."""
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 
 class ProjectBase(BaseModel):
@@ -44,7 +43,7 @@ class ProjectRead(APISchema):
     title: str = Field(description="Название проекта")
     description: Optional[str] = Field(default=None, description="Описание проекта")
     owner_id: int = Field(description="Идентификатор владельца проекта")
-    created_at: datetime = Field(description="Момент создания проекта")
+    created_at: UTCDateTime = Field(description="Момент создания проекта")
 
 
 class ProjectReadWithOwner(ProjectRead):

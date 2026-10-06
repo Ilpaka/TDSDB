@@ -43,6 +43,8 @@ def list_project_documents(
 ) -> Page[DocumentRead]:
     """Вернуть документы проекта, доступного пользователю.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         current_user: Аутентифицированный пользователь.
@@ -94,6 +96,8 @@ def create_document(
     Документ создаётся в состоянии draft, его содержимое сохраняется
     как первая версия. Требуется уровень доступа editor.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         current_user: Аутентифицированный пользователь.
@@ -128,6 +132,8 @@ def get_document(
     """Вернуть документ, доступный текущему пользователю.
 
     Документ недоступного проекта представляется как несуществующий.
+
+    \f
 
     Args:
         session: Сессия базы данных.
@@ -168,6 +174,8 @@ def update_document(
     Изменение содержимого создаёт новую версию. Требуется уровень
     доступа editor.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         current_user: Аутентифицированный пользователь.
@@ -201,6 +209,8 @@ def delete_document(
 ) -> None:
     """Удалить документ вместе со всеми его версиями.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         current_user: Аутентифицированный пользователь.
@@ -230,6 +240,8 @@ def list_document_versions(
     document_id: int = Path(description="Идентификатор документа", ge=1),
 ) -> Page[DocumentVersionReadWithCreator]:
     """Вернуть сохранённые версии документа.
+
+    \f
 
     Args:
         session: Сессия базы данных.
@@ -279,6 +291,8 @@ def restore_document_version(
     текущим и сохраняется как новая версия. Требуется уровень доступа
     editor.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         current_user: Аутентифицированный пользователь.
@@ -313,6 +327,8 @@ def get_document_version(
     version: int = Path(description="Порядковый номер версии", ge=1),
 ) -> DocumentVersionRead:
     """Вернуть конкретную версию документа.
+
+    \f
 
     Args:
         session: Сессия базы данных.

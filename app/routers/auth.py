@@ -35,6 +35,8 @@ def login(session: SessionDep, credentials: UserLogin) -> Token:
     с одного адреса ограничено (по умолчанию 10 в минуту); при превышении
     возвращается 429 с заголовком ``Retry-After``.
 
+    \f
+
     Args:
         session: Сессия базы данных.
         credentials: Адрес и пароль пользователя.
@@ -60,6 +62,8 @@ def login(session: SessionDep, credentials: UserLogin) -> Token:
 )
 def get_me(current_user: CurrentUser) -> UserRead:
     """Вернуть карточку пользователя, которому принадлежит токен.
+
+    \f
 
     Args:
         current_user: Аутентифицированный пользователь.

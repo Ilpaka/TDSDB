@@ -57,7 +57,7 @@
           "Authentication"
         ],
         "summary": "Выполнить вход",
-        "description": "Проверить учётные данные и выпустить токен доступа.\n\nОперация доступна без аутентификации. Полученный токен передаётся\nв заголовке ``Authorization: Bearer <token>``. Число попыток входа\nс одного адреса ограничено (по умолчанию 10 в минуту); при превышении\nвозвращается 429 с заголовком ``Retry-After``.\n\nArgs:\n    session: Сессия базы данных.\n    credentials: Адрес и пароль пользователя.\n\nReturns:\n    Токен доступа и его тип.",
+        "description": "Проверить учётные данные и выпустить токен доступа.\n\nОперация доступна без аутентификации. Полученный токен передаётся\nв заголовке ``Authorization: Bearer <token>``. Число попыток входа\nс одного адреса ограничено (по умолчанию 10 в минуту); при превышении\nвозвращается 429 с заголовком ``Retry-After``.",
         "operationId": "login",
         "requestBody": {
           "content": {
@@ -133,7 +133,7 @@
           "Authentication"
         ],
         "summary": "Получить текущего пользователя",
-        "description": "Вернуть карточку пользователя, которому принадлежит токен.\n\nArgs:\n    current_user: Аутентифицированный пользователь.\n\nReturns:\n    Карточка текущего пользователя.",
+        "description": "Вернуть карточку пользователя, которому принадлежит токен.",
         "operationId": "get_current_user",
         "responses": {
           "200": {
@@ -182,7 +182,7 @@
           "Users"
         ],
         "summary": "Получить список пользователей",
-        "description": "Вернуть учётные записи пользователей.\n\nОперация доступна только администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    pagination: Параметры постраничного обхода.\n    role: Отбор по роли пользователя.\n\nReturns:\n    Страница учётных записей с метаданными пагинации.",
+        "description": "Вернуть учётные записи пользователей.\n\nОперация доступна только администратору.",
         "operationId": "list_users",
         "security": [
           {
@@ -287,7 +287,7 @@
           "Users"
         ],
         "summary": "Создать пользователя",
-        "description": "Создать учётную запись пользователя.\n\nОперация доступна только администратору. Самостоятельная регистрация\nв системе не предусмотрена.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    user_data: Адрес, пароль и роль новой учётной записи.\n\nReturns:\n    Созданная учётная запись.",
+        "description": "Создать учётную запись пользователя.\n\nОперация доступна только администратору. Самостоятельная регистрация\nв системе не предусмотрена.",
         "operationId": "create_user",
         "security": [
           {
@@ -368,7 +368,7 @@
           "Users"
         ],
         "summary": "Изменить пользователя",
-        "description": "Изменить роль или состояние учётной записи.\n\nНеуказанные поля не изменяются. Администратор не может деактивировать\nсобственную учётную запись.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    user_data: Изменяемые атрибуты учётной записи.\n    user_id: Идентификатор изменяемой учётной записи.\n\nReturns:\n    Изменённая учётная запись.",
+        "description": "Изменить роль или состояние учётной записи.\n\nНеуказанные поля не изменяются. Администратор не может деактивировать\nсобственную учётную запись.",
         "operationId": "update_user",
         "security": [
           {
@@ -463,7 +463,7 @@
           "Projects"
         ],
         "summary": "Получить список проектов",
-        "description": "Вернуть проекты, доступные текущему пользователю.\n\nАдминистратор получает все проекты. Остальные роли — проекты,\nкоторыми владеют, и проекты с выданным доступом.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n\nReturns:\n    Страница проектов с метаданными пагинации.",
+        "description": "Вернуть проекты, доступные текущему пользователю.\n\nАдминистратор получает все проекты. Остальные роли — проекты,\nкоторыми владеют, и проекты с выданным доступом.",
         "operationId": "list_projects",
         "security": [
           {
@@ -539,7 +539,7 @@
           "Projects"
         ],
         "summary": "Создать проект",
-        "description": "Создать проект и назначить текущего пользователя его владельцем.\n\nОперация доступна ролям admin и manager.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_data: Название и описание проекта.\n\nReturns:\n    Созданный проект.",
+        "description": "Создать проект и назначить текущего пользователя его владельцем.\n\nОперация доступна ролям admin и manager.",
         "operationId": "create_project",
         "security": [
           {
@@ -609,7 +609,7 @@
           "Projects"
         ],
         "summary": "Получить проект",
-        "description": "Вернуть проект, доступный текущему пользователю.\n\nНедоступный проект представляется как несуществующий: факт наличия\nчужого проекта не раскрывается.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Карточка проекта.",
+        "description": "Вернуть проект, доступный текущему пользователю.\n\nНедоступный проект представляется как несуществующий: факт наличия\nчужого проекта не раскрывается.",
         "operationId": "get_project",
         "security": [
           {
@@ -681,7 +681,7 @@
           "Projects"
         ],
         "summary": "Изменить проект",
-        "description": "Изменить название или описание проекта.\n\nОперация доступна владельцу проекта и администратору. Неуказанные\nполя не изменяются.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_data: Изменяемые атрибуты проекта.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Изменённый проект.",
+        "description": "Изменить название или описание проекта.\n\nОперация доступна владельцу проекта и администратору. Неуказанные\nполя не изменяются.",
         "operationId": "update_project",
         "security": [
           {
@@ -774,7 +774,7 @@
           "Projects"
         ],
         "summary": "Удалить проект",
-        "description": "Удалить проект вместе с зависимыми записями.\n\nОперация доступна владельцу проекта и администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.",
+        "description": "Удалить проект вместе с зависимыми записями.\n\nОперация доступна владельцу проекта и администратору.",
         "operationId": "delete_project",
         "security": [
           {
@@ -852,7 +852,7 @@
           "Access"
         ],
         "summary": "Получить список доступов проекта",
-        "description": "Вернуть участников проекта и выданные им уровни доступа.\n\nОперация доступна владельцу проекта и администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Страница записей о доступе с метаданными пагинации.",
+        "description": "Вернуть участников проекта и выданные им уровни доступа.\n\nОперация доступна владельцу проекта и администратору.",
         "operationId": "list_project_access",
         "security": [
           {
@@ -964,7 +964,7 @@
           "Access"
         ],
         "summary": "Выдать или изменить доступ участника",
-        "description": "Назначить участнику уровень доступа к проекту.\n\nОперация идемпотентна: повторный вызов с тем же телом не изменяет\nсостояние. Код 201 возвращается, если доступ выдан впервые, код 200 —\nесли изменён существующий уровень доступа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    access_data: Назначаемый уровень доступа.\n    response: Ответ, код которого уточняется по результату операции.\n    project_id: Идентификатор проекта.\n    user_id: Идентификатор участника.\n\nReturns:\n    Актуальная запись о доступе участника.",
+        "description": "Назначить участнику уровень доступа к проекту.\n\nОперация идемпотентна: повторный вызов с тем же телом не изменяет\nсостояние. Код 201 возвращается, если доступ выдан впервые, код 200 —\nесли изменён существующий уровень доступа.",
         "operationId": "upsert_project_access",
         "security": [
           {
@@ -1079,7 +1079,7 @@
           "Access"
         ],
         "summary": "Отозвать доступ участника",
-        "description": "Отозвать ранее выданный доступ участника к проекту.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.\n    user_id: Идентификатор участника.",
+        "description": "Отозвать ранее выданный доступ участника к проекту.",
         "operationId": "revoke_project_access",
         "security": [
           {
@@ -1169,7 +1169,7 @@
           "Documents"
         ],
         "summary": "Получить документы проекта",
-        "description": "Вернуть документы проекта, доступного пользователю.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    project_id: Идентификатор проекта.\n    document_status: Отбор по состоянию документа.\n\nReturns:\n    Страница документов с метаданными пагинации.",
+        "description": "Вернуть документы проекта, доступного пользователю.",
         "operationId": "list_project_documents",
         "security": [
           {
@@ -1286,7 +1286,7 @@
           "Documents"
         ],
         "summary": "Создать документ",
-        "description": "Создать документ в проекте.\n\nДокумент создаётся в состоянии draft, его содержимое сохраняется\nкак первая версия. Требуется уровень доступа editor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    doc_data: Название и содержимое документа.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Созданный документ.",
+        "description": "Создать документ в проекте.\n\nДокумент создаётся в состоянии draft, его содержимое сохраняется\nкак первая версия. Требуется уровень доступа editor.",
         "operationId": "create_document",
         "security": [
           {
@@ -1381,7 +1381,7 @@
           "Documents"
         ],
         "summary": "Получить документ",
-        "description": "Вернуть документ, доступный текущему пользователю.\n\nДокумент недоступного проекта представляется как несуществующий.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.\n\nReturns:\n    Карточка документа.",
+        "description": "Вернуть документ, доступный текущему пользователю.\n\nДокумент недоступного проекта представляется как несуществующий.",
         "operationId": "get_document",
         "security": [
           {
@@ -1453,7 +1453,7 @@
           "Documents"
         ],
         "summary": "Изменить документ",
-        "description": "Изменить название, содержимое или состояние документа.\n\nПубликация и архивирование выполняются изменением поля ``status``.\nИзменение содержимого создаёт новую версию. Требуется уровень\nдоступа editor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    doc_data: Изменяемые атрибуты документа.\n    document_id: Идентификатор документа.\n\nReturns:\n    Изменённый документ.",
+        "description": "Изменить название, содержимое или состояние документа.\n\nПубликация и архивирование выполняются изменением поля ``status``.\nИзменение содержимого создаёт новую версию. Требуется уровень\nдоступа editor.",
         "operationId": "update_document",
         "security": [
           {
@@ -1557,7 +1557,7 @@
           "Documents"
         ],
         "summary": "Удалить документ",
-        "description": "Удалить документ вместе со всеми его версиями.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.",
+        "description": "Удалить документ вместе со всеми его версиями.",
         "operationId": "delete_document",
         "security": [
           {
@@ -1635,7 +1635,7 @@
           "Documents"
         ],
         "summary": "Получить версии документа",
-        "description": "Вернуть сохранённые версии документа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    document_id: Идентификатор документа.\n\nReturns:\n    Страница версий с метаданными пагинации.",
+        "description": "Вернуть сохранённые версии документа.",
         "operationId": "list_document_versions",
         "security": [
           {
@@ -1734,7 +1734,7 @@
           "Documents"
         ],
         "summary": "Восстановить версию документа",
-        "description": "Создать версию документа из ранее сохранённой.\n\nИстория версий не изменяется: содержимое выбранной версии становится\nтекущим и сохраняется как новая версия. Требуется уровень доступа\neditor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    restore_data: Номер восстанавливаемой версии.\n    document_id: Идентификатор документа.\n\nReturns:\n    Документ с восстановленным содержимым.",
+        "description": "Создать версию документа из ранее сохранённой.\n\nИстория версий не изменяется: содержимое выбранной версии становится\nтекущим и сохраняется как новая версия. Требуется уровень доступа\neditor.",
         "operationId": "restore_document_version",
         "security": [
           {
@@ -1829,7 +1829,7 @@
           "Documents"
         ],
         "summary": "Получить версию документа",
-        "description": "Вернуть конкретную версию документа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.\n    version: Порядковый номер версии.\n\nReturns:\n    Запрошенная версия документа.",
+        "description": "Вернуть конкретную версию документа.",
         "operationId": "get_document_version",
         "security": [
           {
@@ -1915,7 +1915,7 @@
           "Audit"
         ],
         "summary": "Получить журнал действий",
-        "description": "Вернуть записи журнала действий пользователей.\n\nОперация доступна только администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    pagination: Параметры постраничного обхода.\n    date_from: Нижняя граница периода включительно.\n    date_to: Верхняя граница периода включительно.\n    user_id: Идентификатор пользователя, выполнившего действие.\n    action: Точное наименование действия.\n    entity_type: Тип сущности, к которой относится действие.\n\nReturns:\n    Страница записей журнала с метаданными пагинации.",
+        "description": "Вернуть записи журнала действий пользователей.\n\nОперация доступна только администратору.",
         "operationId": "list_audit_logs",
         "security": [
           {
@@ -2099,6 +2099,7 @@
       "AuditLogReadWithUser": {
         "properties": {
           "action": {
+            "type": "string",
             "title": "Action",
             "description": "Выполненное действие",
             "examples": [
@@ -2106,29 +2107,61 @@
             ]
           },
           "entity_type": {
+            "$ref": "#/components/schemas/EntityType",
             "description": "Тип сущности, к которой относится действие"
           },
           "entity_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Entity Id",
             "description": "Идентификатор сущности"
           },
           "meta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Meta",
             "description": "Дополнительные сведения в формате JSON"
           },
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор записи"
           },
           "user_id": {
+            "type": "integer",
             "title": "User Id",
             "description": "Идентификатор пользователя, выполнившего действие"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент выполнения действия"
+            "description": "Момент выполнения действия",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           },
           "user_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "User Email",
             "description": "Адрес пользователя, выполнившего действие"
           }
@@ -2184,39 +2217,70 @@
       "DocumentRead": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор документа"
           },
           "project_id": {
+            "type": "integer",
             "title": "Project Id",
             "description": "Идентификатор проекта"
           },
           "title": {
+            "type": "string",
             "title": "Title",
             "description": "Название документа"
           },
           "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Content",
             "description": "Содержимое документа"
           },
           "status": {
+            "$ref": "#/components/schemas/DocumentStatus",
             "description": "Состояние документа"
           },
           "created_by": {
+            "type": "integer",
             "title": "Created By",
             "description": "Идентификатор автора"
           },
           "updated_by": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Updated By",
             "description": "Идентификатор пользователя, изменившего документ"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент создания документа"
+            "description": "Момент создания документа",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           },
           "updated_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Updated At",
-            "description": "Момент последнего изменения"
+            "description": "Момент последнего изменения",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           }
         },
         "type": "object",
@@ -2293,28 +2357,38 @@
       "DocumentVersionRead": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор версии"
           },
           "document_id": {
+            "type": "integer",
             "title": "Document Id",
             "description": "Идентификатор документа"
           },
           "version": {
+            "type": "integer",
             "title": "Version",
             "description": "Порядковый номер версии"
           },
           "content_snapshot": {
+            "type": "string",
             "title": "Content Snapshot",
             "description": "Содержимое документа на момент сохранения"
           },
           "created_by": {
+            "type": "integer",
             "title": "Created By",
             "description": "Идентификатор пользователя, создавшего версию"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент создания версии"
+            "description": "Момент создания версии",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           }
         },
         "type": "object",
@@ -2332,30 +2406,48 @@
       "DocumentVersionReadWithCreator": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор версии"
           },
           "document_id": {
+            "type": "integer",
             "title": "Document Id",
             "description": "Идентификатор документа"
           },
           "version": {
+            "type": "integer",
             "title": "Version",
             "description": "Порядковый номер версии"
           },
           "content_snapshot": {
+            "type": "string",
             "title": "Content Snapshot",
             "description": "Содержимое документа на момент сохранения"
           },
           "created_by": {
+            "type": "integer",
             "title": "Created By",
             "description": "Идентификатор пользователя, создавшего версию"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент создания версии"
+            "description": "Момент создания версии",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           },
           "creator_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Creator Email",
             "description": "Адрес пользователя, создавшего версию"
           }
@@ -2750,33 +2842,59 @@
       "ProjectAccessReadWithUser": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор записи о доступе"
           },
           "project_id": {
+            "type": "integer",
             "title": "Project Id",
             "description": "Идентификатор проекта"
           },
           "user_id": {
+            "type": "integer",
             "title": "User Id",
             "description": "Идентификатор участника"
           },
           "permission": {
+            "$ref": "#/components/schemas/Permission",
             "description": "Уровень доступа"
           },
           "granted_by": {
+            "type": "integer",
             "title": "Granted By",
             "description": "Идентификатор пользователя, выдавшего доступ"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент выдачи доступа"
+            "description": "Момент выдачи доступа",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           },
           "user_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "User Email",
             "description": "Адрес участника"
           },
           "granter_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Granter Email",
             "description": "Адрес пользователя, выдавшего доступ"
           }
@@ -2844,24 +2962,40 @@
       "ProjectRead": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор проекта"
           },
           "title": {
+            "type": "string",
             "title": "Title",
             "description": "Название проекта"
           },
           "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description",
             "description": "Описание проекта"
           },
           "owner_id": {
+            "type": "integer",
             "title": "Owner Id",
             "description": "Идентификатор владельца проекта"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент создания проекта"
+            "description": "Момент создания проекта",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           }
         },
         "type": "object",
@@ -3072,6 +3206,7 @@
       "UserRead": {
         "properties": {
           "id": {
+            "type": "integer",
             "title": "Id",
             "description": "Идентификатор пользователя"
           },
@@ -3082,15 +3217,22 @@
             "description": "Адрес электронной почты"
           },
           "role": {
+            "$ref": "#/components/schemas/UserRole",
             "description": "Роль пользователя"
           },
           "is_active": {
+            "type": "boolean",
             "title": "Is Active",
             "description": "Признак активности учётной записи"
           },
           "created_at": {
+            "type": "string",
+            "format": "date-time",
             "title": "Created At",
-            "description": "Момент создания учётной записи"
+            "description": "Момент создания учётной записи",
+            "examples": [
+              "2026-09-09T08:15:30Z"
+            ]
           }
         },
         "type": "object",

@@ -1,12 +1,12 @@
 """Схемы журнала действий пользователей."""
 
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.audit_log import EntityType
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 
 class AuditLogBase(APISchema):
@@ -29,7 +29,7 @@ class AuditLogRead(AuditLogBase):
 
     id: int = Field(description="Идентификатор записи")
     user_id: int = Field(description="Идентификатор пользователя, выполнившего действие")
-    created_at: datetime = Field(description="Момент выполнения действия")
+    created_at: UTCDateTime = Field(description="Момент выполнения действия")
 
 
 class AuditLogReadWithUser(AuditLogRead):

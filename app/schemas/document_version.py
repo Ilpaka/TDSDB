@@ -1,11 +1,10 @@
 """Схемы версий документов."""
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 
 class DocumentVersionRestore(BaseModel):
@@ -26,7 +25,7 @@ class DocumentVersionRead(APISchema):
     version: int = Field(description="Порядковый номер версии")
     content_snapshot: str = Field(description="Содержимое документа на момент сохранения")
     created_by: int = Field(description="Идентификатор пользователя, создавшего версию")
-    created_at: datetime = Field(description="Момент создания версии")
+    created_at: UTCDateTime = Field(description="Момент создания версии")
 
 
 class DocumentVersionReadWithCreator(DocumentVersionRead):

@@ -1,13 +1,12 @@
 """Схемы пользователей публичного API."""
 
 import re
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.models.user import UserRole
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 PASSWORD_PATTERN = re.compile(r"^(?=.*[A-Za-z])(?=.*\d).{8,}$")
 """Пароль содержит не менее восьми символов, букву и цифру."""
@@ -73,4 +72,4 @@ class UserRead(APISchema):
     email: EmailStr = Field(description="Адрес электронной почты")
     role: UserRole = Field(description="Роль пользователя")
     is_active: bool = Field(description="Признак активности учётной записи")
-    created_at: datetime = Field(description="Момент создания учётной записи")
+    created_at: UTCDateTime = Field(description="Момент создания учётной записи")

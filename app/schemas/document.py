@@ -1,12 +1,11 @@
 """Схемы документов публичного API."""
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.document import DocumentStatus
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 MAX_CONTENT_LENGTH = 100_000
 """Максимальная длина содержимого документа (OWASP API4)."""
@@ -64,8 +63,8 @@ class DocumentRead(APISchema):
     updated_by: Optional[int] = Field(
         default=None, description="Идентификатор пользователя, изменившего документ"
     )
-    created_at: datetime = Field(description="Момент создания документа")
-    updated_at: datetime = Field(description="Момент последнего изменения")
+    created_at: UTCDateTime = Field(description="Момент создания документа")
+    updated_at: UTCDateTime = Field(description="Момент последнего изменения")
 
 
 class DocumentReadWithDetails(DocumentRead):

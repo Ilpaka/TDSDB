@@ -147,3 +147,26 @@ def test_exported_schema_matches_application(schema):
     assert exported == json.loads(json.dumps(schema)), (
         "docs/openapi/openapi.json is outdated: run python -m scripts.export_openapi"
     )
+
+
+def test_schema_properties_have_types(schema):
+    typed_keys = {"type", "$ref", "anyOf", "allOf", "oneOf", "enum", "const"}
+
+    for name, component in schema["components"]["schemas"].items():
+        for prop, definition in component.get("properties", {}).items():
+            assert typed_keys & definition.keys(), f"{name}.{prop} has no type in OpenAPI"
+
+
+def test_datetime_fields_use_date_time_format(schema):
+    project = schema["components"]["schemas"]["ProjectRead"]["properties"]
+
+    assert project["id"]["type"] == "integer"
+    assert project["created_at"]["type"] == "string"
+    assert project["created_at"]["format"] == "date-time"
+
+
+def test_descriptions_hide_internal_docstring_sections(schema):
+    for method, path, operation in _operations(schema):
+        description = operation.get("description", "")
+        assert "Args:" not in description, (method, path)
+        assert "session" not in description, (method, path)

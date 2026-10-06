@@ -1,12 +1,11 @@
 """Схемы управления доступом к проектам."""
 
-from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
 from app.models.project_access import Permission
-from app.schemas.base import APISchema
+from app.schemas.base import APISchema, UTCDateTime
 
 
 class ProjectAccessUpsert(BaseModel):
@@ -27,7 +26,7 @@ class ProjectAccessRead(APISchema):
     user_id: int = Field(description="Идентификатор участника")
     permission: Permission = Field(description="Уровень доступа")
     granted_by: int = Field(description="Идентификатор пользователя, выдавшего доступ")
-    created_at: datetime = Field(description="Момент выдачи доступа")
+    created_at: UTCDateTime = Field(description="Момент выдачи доступа")
 
 
 class ProjectAccessReadWithUser(ProjectAccessRead):
