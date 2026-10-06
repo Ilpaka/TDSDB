@@ -45,9 +45,12 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Document Center API"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "2.0.0"
     ENVIRONMENT: Environment = Environment.development
     DEBUG: bool = False
+    DOCS_ENABLED: bool = Field(
+        default=True, description="Публиковать /docs, /redoc и /openapi.json"
+    )
 
     # API contract
     API_V1_PREFIX: str = "/api/v1"
@@ -62,9 +65,20 @@ class Settings(BaseSettings):
     )
 
     # JWT
-    JWT_SECRET: str = DEMO_JWT_SECRET
+    JWT_SECRET: str = Field(default=DEMO_JWT_SECRET, repr=False)
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, ge=1, le=1440)
+
+    # Resource limits
+    LOGIN_RATE_LIMIT: int = Field(
+        default=10, ge=1, description="Допустимое число попыток входа с одного адреса в окне"
+    )
+    LOGIN_RATE_WINDOW_SECONDS: int = Field(
+        default=60, ge=1, description="Длительность окна ограничения попыток входа, секунд"
+    )
+    MAX_REQUEST_BODY_BYTES: int = Field(
+        default=1_048_576, ge=1024, description="Максимальный размер тела запроса, байт"
+    )
 
     @property
     def is_production(self) -> bool:

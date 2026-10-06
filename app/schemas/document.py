@@ -8,6 +8,9 @@ from pydantic import BaseModel, Field
 from app.models.document import DocumentStatus
 from app.schemas.base import APISchema
 
+MAX_CONTENT_LENGTH = 100_000
+"""Максимальная длина содержимого документа (OWASP API4)."""
+
 
 class DocumentBase(BaseModel):
     """Общие поля документа."""
@@ -18,7 +21,12 @@ class DocumentBase(BaseModel):
         description="Название документа, от 3 до 120 символов",
         examples=["Пояснительная записка"],
     )
-    content: Optional[str] = Field(default="", description="Содержимое документа")
+    content: Optional[str] = Field(
+        default="",
+        max_length=MAX_CONTENT_LENGTH,
+        description=f"Содержимое документа, не более {MAX_CONTENT_LENGTH} символов",
+        examples=["Раздел 1. Общие положения"],
+    )
 
 
 class DocumentCreate(DocumentBase):
@@ -31,7 +39,9 @@ class DocumentUpdate(BaseModel):
     title: Optional[str] = Field(
         default=None, min_length=3, max_length=120, description="Новое название документа"
     )
-    content: Optional[str] = Field(default=None, description="Новое содержимое документа")
+    content: Optional[str] = Field(
+        default=None, max_length=MAX_CONTENT_LENGTH, description="Новое содержимое документа"
+    )
     status: Optional[DocumentStatus] = Field(
         default=None,
         description=(

@@ -79,6 +79,9 @@ class Problems:
     INVALID_STATE_TRANSITION = ProblemSpec(
         "invalid-state-transition", "Invalid document state transition", status.HTTP_409_CONFLICT
     )
+    PAYLOAD_TOO_LARGE = ProblemSpec(
+        "payload-too-large", "Request body too large", 413
+    )
     RATE_LIMIT_EXCEEDED = ProblemSpec(
         "rate-limit-exceeded", "Too many requests", status.HTTP_429_TOO_MANY_REQUESTS
     )
@@ -224,6 +227,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 _SPEC_BY_STATUS: dict[int, ProblemSpec] = {
     status.HTTP_401_UNAUTHORIZED: Problems.AUTHENTICATION_REQUIRED,
     status.HTTP_403_FORBIDDEN: Problems.ACCESS_DENIED,
+    413: Problems.PAYLOAD_TOO_LARGE,
     status.HTTP_429_TOO_MANY_REQUESTS: Problems.RATE_LIMIT_EXCEEDED,
     status.HTTP_500_INTERNAL_SERVER_ERROR: Problems.INTERNAL_ERROR,
 }
