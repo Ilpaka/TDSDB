@@ -1,0 +1,6 @@
+with_list: n=10000 | elapsed=0.000213 sec | 0.385902 MiB
+with_list: n=100000 | elapsed=0.002383 sec | 3.815132 MiB
+with_list: n=1000000 | elapsed=0.025023 sec | 38.574409 MiB
+with_generator: n=10000 | elapsed=0.000311 sec | 0.000443 MiB
+with_generator: n=100000 | elapsed=0.003227 sec | 0.000443 MiB
+with_generator: n=1000000 | elapsed=0.030968 sec | 0.000443 MiB

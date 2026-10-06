@@ -1,0 +1,6 @@
+n=500 | nested=0.001621 | set=0.000009
+n=1000 | nested=0.006949 | set=0.000017
+n=2000 | nested=0.027183 | set=0.000036
+n=4000 | nested=0.108306 | set=0.000067
+nested: peak=0.000271 MiB
+set: peak=0.156502 MiB
