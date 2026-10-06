@@ -1,0 +1,3250 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Document Center API",
+    "summary": "Документ-центр ИП «Северный Контур»: проекты, документы, версии и аудит",
+    "description": "\nВнутренний REST API ИП «Северный Контур» для управления документами по проектам.\n\n**Базовый путь публичного контракта:** `/api/v1`. Версия контракта (`v1`)\nне совпадает с версией приложения, указанной в заголовке документации.\n\n### Аутентификация\nПолучите токен операцией `POST /api/v1/auth/login` и передавайте его в заголовке\n`Authorization: Bearer <token>`. В Swagger UI нажмите **Authorize** и вставьте токен.\n\n### Роли\n- **admin** — полный доступ ко всем проектам, пользователям и журналу действий;\n- **manager** — создаёт проекты и выдаёт доступ участникам своих проектов;\n- **worker** — работает с документами в рамках выданного доступа `editor`;\n- **viewer** — только чтение в рамках выданного доступа.\n\n### Ошибки\nВсе ошибки возвращаются в формате RFC 9457 Problem Details\n(`application/problem+json`) с полями `type`, `title`, `status`, `detail`,\n`instance`; ошибки валидации дополнительно содержат массив `errors`.\n\n### Коллекции\nКоллекции поддерживают параметры `offset` (≥ 0) и `limit` (1…100, по умолчанию 20)\nи возвращают конверт `items`, `total`, `offset`, `limit`.\n",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Получить сведения о сервисе",
+        "description": "Вернуть метаданные сервиса и адреса документации.\n\nОперация публичная и не входит в версию контракта.",
+        "operationId": "get_service_info",
+        "responses": {
+          "200": {
+            "description": "Название, версии и адреса документации",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Проверить работоспособность",
+        "description": "Вернуть признак работоспособности для систем мониторинга.\n\nОперация публичная, не обращается к хранилищу и не раскрывает\nсведений о конфигурации.",
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "description": "Признак работоспособности сервиса",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Выполнить вход",
+        "description": "Проверить учётные данные и выпустить токен доступа.\n\nОперация доступна без аутентификации. Полученный токен передаётся\nв заголовке ``Authorization: Bearer <token>``. Число попыток входа\nс одного адреса ограничено (по умолчанию 10 в минуту); при превышении\nвозвращается 429 с заголовком ``Retry-After``.\n\nArgs:\n    session: Сессия базы данных.\n    credentials: Адрес и пароль пользователя.\n\nReturns:\n    Токен доступа и его тип.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Токен доступа со схемой Bearer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User account is deactivated",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Получить текущего пользователя",
+        "description": "Вернуть карточку пользователя, которому принадлежит токен.\n\nArgs:\n    current_user: Аутентифицированный пользователь.\n\nReturns:\n    Карточка текущего пользователя.",
+        "operationId": "get_current_user",
+        "responses": {
+          "200": {
+            "description": "Карточка аутентифицированного пользователя",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "User account is deactivated",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Получить список пользователей",
+        "description": "Вернуть учётные записи пользователей.\n\nОперация доступна только администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    pagination: Параметры постраничного обхода.\n    role: Отбор по роли пользователя.\n\nReturns:\n    Страница учётных записей с метаданными пагинации.",
+        "operationId": "list_users",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/UserRole"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Отбор по роли пользователя",
+              "title": "Role"
+            },
+            "description": "Отбор по роли пользователя"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница учётных записей",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_UserRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Создать пользователя",
+        "description": "Создать учётную запись пользователя.\n\nОперация доступна только администратору. Самостоятельная регистрация\nв системе не предусмотрена.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    user_data: Адрес, пароль и роль новой учётной записи.\n\nReturns:\n    Созданная учётная запись.",
+        "operationId": "create_user",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Созданная учётная запись",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Изменить пользователя",
+        "description": "Изменить роль или состояние учётной записи.\n\nНеуказанные поля не изменяются. Администратор не может деактивировать\nсобственную учётную запись.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    user_data: Изменяемые атрибуты учётной записи.\n    user_id: Идентификатор изменяемой учётной записи.\n\nReturns:\n    Изменённая учётная запись.",
+        "operationId": "update_user",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор пользователя",
+              "title": "User Id"
+            },
+            "description": "Идентификатор пользователя"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Изменённая учётная запись",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Получить список проектов",
+        "description": "Вернуть проекты, доступные текущему пользователю.\n\nАдминистратор получает все проекты. Остальные роли — проекты,\nкоторыми владеют, и проекты с выданным доступом.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n\nReturns:\n    Страница проектов с метаданными пагинации.",
+        "operationId": "list_projects",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница проектов, доступных пользователю",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ProjectRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Создать проект",
+        "description": "Создать проект и назначить текущего пользователя его владельцем.\n\nОперация доступна ролям admin и manager.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_data: Название и описание проекта.\n\nReturns:\n    Созданный проект.",
+        "operationId": "create_project",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Созданный проект",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Получить проект",
+        "description": "Вернуть проект, доступный текущему пользователю.\n\nНедоступный проект представляется как несуществующий: факт наличия\nчужого проекта не раскрывается.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Карточка проекта.",
+        "operationId": "get_project",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Карточка проекта",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Изменить проект",
+        "description": "Изменить название или описание проекта.\n\nОперация доступна владельцу проекта и администратору. Неуказанные\nполя не изменяются.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_data: Изменяемые атрибуты проекта.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Изменённый проект.",
+        "operationId": "update_project",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Изменённый проект",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Удалить проект",
+        "description": "Удалить проект вместе с зависимыми записями.\n\nОперация доступна владельцу проекта и администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.",
+        "operationId": "delete_project",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Проект удалён"
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/access": {
+      "get": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Получить список доступов проекта",
+        "description": "Вернуть участников проекта и выданные им уровни доступа.\n\nОперация доступна владельцу проекта и администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Страница записей о доступе с метаданными пагинации.",
+        "operationId": "list_project_access",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница записей о выданных доступах",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ProjectAccessReadWithUser_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/access/{user_id}": {
+      "put": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Выдать или изменить доступ участника",
+        "description": "Назначить участнику уровень доступа к проекту.\n\nОперация идемпотентна: повторный вызов с тем же телом не изменяет\nсостояние. Код 201 возвращается, если доступ выдан впервые, код 200 —\nесли изменён существующий уровень доступа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    access_data: Назначаемый уровень доступа.\n    response: Ответ, код которого уточняется по результату операции.\n    project_id: Идентификатор проекта.\n    user_id: Идентификатор участника.\n\nReturns:\n    Актуальная запись о доступе участника.",
+        "operationId": "upsert_project_access",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор участника",
+              "title": "User Id"
+            },
+            "description": "Идентификатор участника"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectAccessUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Запись о доступе участника к проекту",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectAccessReadWithUser"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Доступ выдан впервые",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectAccessReadWithUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Отозвать доступ участника",
+        "description": "Отозвать ранее выданный доступ участника к проекту.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    project_id: Идентификатор проекта.\n    user_id: Идентификатор участника.",
+        "operationId": "revoke_project_access",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор участника",
+              "title": "User Id"
+            },
+            "description": "Идентификатор участника"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Доступ отозван"
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project_id}/documents": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Получить документы проекта",
+        "description": "Вернуть документы проекта, доступного пользователю.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    project_id: Идентификатор проекта.\n    document_status: Отбор по состоянию документа.\n\nReturns:\n    Страница документов с метаданными пагинации.",
+        "operationId": "list_project_documents",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Отбор по состоянию документа",
+              "title": "Status"
+            },
+            "description": "Отбор по состоянию документа"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница документов проекта",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_DocumentRead_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Создать документ",
+        "description": "Создать документ в проекте.\n\nДокумент создаётся в состоянии draft, его содержимое сохраняется\nкак первая версия. Требуется уровень доступа editor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    doc_data: Название и содержимое документа.\n    project_id: Идентификатор проекта.\n\nReturns:\n    Созданный документ.",
+        "operationId": "create_document",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор проекта",
+              "title": "Project Id"
+            },
+            "description": "Идентификатор проекта"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Созданный документ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/documents/{document_id}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Получить документ",
+        "description": "Вернуть документ, доступный текущему пользователю.\n\nДокумент недоступного проекта представляется как несуществующий.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.\n\nReturns:\n    Карточка документа.",
+        "operationId": "get_document",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Карточка документа",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Изменить документ",
+        "description": "Изменить название, содержимое или состояние документа.\n\nПубликация и архивирование выполняются изменением поля ``status``.\nИзменение содержимого создаёт новую версию. Требуется уровень\nдоступа editor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    doc_data: Изменяемые атрибуты документа.\n    document_id: Идентификатор документа.\n\nReturns:\n    Изменённый документ.",
+        "operationId": "update_document",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Изменённый документ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Invalid document state transition",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Удалить документ",
+        "description": "Удалить документ вместе со всеми его версиями.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.",
+        "operationId": "delete_document",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Документ удалён"
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/documents/{document_id}/versions": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Получить версии документа",
+        "description": "Вернуть сохранённые версии документа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    pagination: Параметры постраничного обхода.\n    document_id: Идентификатор документа.\n\nReturns:\n    Страница версий с метаданными пагинации.",
+        "operationId": "list_document_versions",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница версий в порядке убывания номера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_DocumentVersionReadWithCreator_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Восстановить версию документа",
+        "description": "Создать версию документа из ранее сохранённой.\n\nИстория версий не изменяется: содержимое выбранной версии становится\nтекущим и сохраняется как новая версия. Требуется уровень доступа\neditor.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    restore_data: Номер восстанавливаемой версии.\n    document_id: Идентификатор документа.\n\nReturns:\n    Документ с восстановленным содержимым.",
+        "operationId": "restore_document_version",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentVersionRestore"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Документ с восстановленным содержимым",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document version not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/documents/{document_id}/versions/{version}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Получить версию документа",
+        "description": "Вернуть конкретную версию документа.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный пользователь.\n    document_id: Идентификатор документа.\n    version: Порядковый номер версии.\n\nReturns:\n    Запрошенная версия документа.",
+        "operationId": "get_document_version",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Идентификатор документа",
+              "title": "Document Id"
+            },
+            "description": "Идентификатор документа"
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Порядковый номер версии",
+              "title": "Version"
+            },
+            "description": "Порядковый номер версии"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Сохранённая версия документа",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentVersionRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Document version not found",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Получить журнал действий",
+        "description": "Вернуть записи журнала действий пользователей.\n\nОперация доступна только администратору.\n\nArgs:\n    session: Сессия базы данных.\n    current_user: Аутентифицированный администратор.\n    pagination: Параметры постраничного обхода.\n    date_from: Нижняя граница периода включительно.\n    date_to: Верхняя граница периода включительно.\n    user_id: Идентификатор пользователя, выполнившего действие.\n    action: Точное наименование действия.\n    entity_type: Тип сущности, к которой относится действие.\n\nReturns:\n    Страница записей журнала с метаданными пагинации.",
+        "operationId": "list_audit_logs",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Нижняя граница периода включительно",
+              "title": "Date From"
+            },
+            "description": "Нижняя граница периода включительно"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Верхняя граница периода включительно",
+              "title": "Date To"
+            },
+            "description": "Верхняя граница периода включительно"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Идентификатор пользователя, выполнившего действие",
+              "title": "User Id"
+            },
+            "description": "Идентификатор пользователя, выполнившего действие"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Точное наименование действия",
+              "title": "Action"
+            },
+            "description": "Точное наименование действия"
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EntityType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Тип сущности, к которой относится действие",
+              "title": "Entity Type"
+            },
+            "description": "Тип сущности, к которой относится действие"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Смещение от начала коллекции",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Смещение от начала коллекции"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Размер страницы, максимум 100",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Размер страницы, максимум 100"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Страница записей журнала, отсортированная по убыванию времени",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AuditLogReadWithUser_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem+json": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuditLogReadWithUser": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "description": "Выполненное действие",
+            "examples": [
+              "grant_access"
+            ]
+          },
+          "entity_type": {
+            "description": "Тип сущности, к которой относится действие"
+          },
+          "entity_id": {
+            "title": "Entity Id",
+            "description": "Идентификатор сущности"
+          },
+          "meta": {
+            "title": "Meta",
+            "description": "Дополнительные сведения в формате JSON"
+          },
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор записи"
+          },
+          "user_id": {
+            "title": "User Id",
+            "description": "Идентификатор пользователя, выполнившего действие"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент выполнения действия"
+          },
+          "user_email": {
+            "title": "User Email",
+            "description": "Адрес пользователя, выполнившего действие"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "entity_type",
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "AuditLogReadWithUser",
+        "description": "Запись журнала с адресом пользователя."
+      },
+      "DocumentCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title",
+            "description": "Название документа, от 3 до 120 символов",
+            "examples": [
+              "Пояснительная записка"
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content",
+            "description": "Содержимое документа, не более 100000 символов",
+            "default": "",
+            "examples": [
+              "Раздел 1. Общие положения"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "DocumentCreate",
+        "description": "Данные для создания документа."
+      },
+      "DocumentRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор документа"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "description": "Идентификатор проекта"
+          },
+          "title": {
+            "title": "Title",
+            "description": "Название документа"
+          },
+          "content": {
+            "title": "Content",
+            "description": "Содержимое документа"
+          },
+          "status": {
+            "description": "Состояние документа"
+          },
+          "created_by": {
+            "title": "Created By",
+            "description": "Идентификатор автора"
+          },
+          "updated_by": {
+            "title": "Updated By",
+            "description": "Идентификатор пользователя, изменившего документ"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент создания документа"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "description": "Момент последнего изменения"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "title",
+          "status",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "DocumentRead",
+        "description": "Карточка документа."
+      },
+      "DocumentStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "title": "DocumentStatus",
+        "description": "Состояние жизненного цикла документа: draft, published или archived."
+      },
+      "DocumentUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Новое название документа"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content",
+            "description": "Новое содержимое документа"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Новое состояние документа. Допустимые переходы: draft в published или archived, published в draft или archived, archived в draft",
+            "examples": [
+              "published"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "DocumentUpdate",
+        "description": "Изменяемые атрибуты документа; неуказанные поля не изменяются."
+      },
+      "DocumentVersionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор версии"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "description": "Идентификатор документа"
+          },
+          "version": {
+            "title": "Version",
+            "description": "Порядковый номер версии"
+          },
+          "content_snapshot": {
+            "title": "Content Snapshot",
+            "description": "Содержимое документа на момент сохранения"
+          },
+          "created_by": {
+            "title": "Created By",
+            "description": "Идентификатор пользователя, создавшего версию"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент создания версии"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "document_id",
+          "version",
+          "content_snapshot",
+          "created_by",
+          "created_at"
+        ],
+        "title": "DocumentVersionRead",
+        "description": "Сохранённая версия документа."
+      },
+      "DocumentVersionReadWithCreator": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор версии"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "description": "Идентификатор документа"
+          },
+          "version": {
+            "title": "Version",
+            "description": "Порядковый номер версии"
+          },
+          "content_snapshot": {
+            "title": "Content Snapshot",
+            "description": "Содержимое документа на момент сохранения"
+          },
+          "created_by": {
+            "title": "Created By",
+            "description": "Идентификатор пользователя, создавшего версию"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент создания версии"
+          },
+          "creator_email": {
+            "title": "Creator Email",
+            "description": "Адрес пользователя, создавшего версию"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "document_id",
+          "version",
+          "content_snapshot",
+          "created_by",
+          "created_at"
+        ],
+        "title": "DocumentVersionReadWithCreator",
+        "description": "Версия документа с адресом создавшего её пользователя."
+      },
+      "DocumentVersionRestore": {
+        "properties": {
+          "restore_from": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Restore From",
+            "description": "Номер версии, содержимое которой восстанавливается",
+            "examples": [
+              2
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "restore_from"
+        ],
+        "title": "DocumentVersionRestore",
+        "description": "Запрос на создание версии из ранее сохранённой."
+      },
+      "EntityType": {
+        "type": "string",
+        "enum": [
+          "user",
+          "project",
+          "document",
+          "access"
+        ],
+        "title": "EntityType",
+        "description": "Тип сущности, к которой относится действие: user, project, document или access."
+      },
+      "FieldError": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field",
+            "description": "Путь к полю запроса",
+            "examples": [
+              "title"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Причина отклонения значения",
+            "examples": [
+              "String should have at least 3 characters"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "FieldError",
+        "description": "Описание одной ошибки валидации поля."
+      },
+      "HealthStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "healthy",
+            "title": "Status",
+            "description": "Состояние сервиса",
+            "examples": [
+              "healthy"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthStatus",
+        "description": "Признак работоспособности сервиса."
+      },
+      "Page_AuditLogReadWithUser_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogReadWithUser"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[AuditLogReadWithUser]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Page_DocumentRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentRead"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[DocumentRead]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Page_DocumentVersionReadWithCreator_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentVersionReadWithCreator"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[DocumentVersionReadWithCreator]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Page_ProjectAccessReadWithUser_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectAccessReadWithUser"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[ProjectAccessReadWithUser]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Page_ProjectRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectRead"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[ProjectRead]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Page_UserRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserRead"
+            },
+            "type": "array",
+            "title": "Items",
+            "description": "Записи текущей страницы"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total",
+            "description": "Общее количество записей, доступных запросу"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Offset",
+            "description": "Смещение текущей страницы от начала коллекции"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "Запрошенный размер страницы"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "Page[UserRead]",
+        "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+      },
+      "Permission": {
+        "type": "string",
+        "enum": [
+          "viewer",
+          "editor"
+        ],
+        "title": "Permission",
+        "description": "Уровень доступа к проекту: viewer (чтение) или editor (изменение)."
+      },
+      "ProblemDetails": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Стабильный URI типа ошибки"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Краткое название типа ошибки, не зависящее от экземпляра"
+          },
+          "status": {
+            "type": "integer",
+            "maximum": 599.0,
+            "minimum": 400.0,
+            "title": "Status",
+            "description": "HTTP-код ответа"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "Описание конкретного случая возникновения ошибки"
+          },
+          "instance": {
+            "type": "string",
+            "title": "Instance",
+            "description": "Путь запроса, при обработке которого возникла ошибка"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance"
+        ],
+        "title": "ProblemDetails",
+        "description": "Тело ответа с ошибкой по RFC 9457.",
+        "examples": [
+          {
+            "detail": "Project 42 does not exist or is unavailable",
+            "instance": "/api/v1/projects/42",
+            "status": 404,
+            "title": "Project not found",
+            "type": "https://docs.local/problems/project-not-found"
+          }
+        ]
+      },
+      "ProjectAccessReadWithUser": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор записи о доступе"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "description": "Идентификатор проекта"
+          },
+          "user_id": {
+            "title": "User Id",
+            "description": "Идентификатор участника"
+          },
+          "permission": {
+            "description": "Уровень доступа"
+          },
+          "granted_by": {
+            "title": "Granted By",
+            "description": "Идентификатор пользователя, выдавшего доступ"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент выдачи доступа"
+          },
+          "user_email": {
+            "title": "User Email",
+            "description": "Адрес участника"
+          },
+          "granter_email": {
+            "title": "Granter Email",
+            "description": "Адрес пользователя, выдавшего доступ"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "user_id",
+          "permission",
+          "granted_by",
+          "created_at"
+        ],
+        "title": "ProjectAccessReadWithUser",
+        "description": "Запись о доступе с адресами участника и выдавшего доступ."
+      },
+      "ProjectAccessUpsert": {
+        "properties": {
+          "permission": {
+            "$ref": "#/components/schemas/Permission",
+            "description": "Уровень доступа участника к проекту",
+            "default": "viewer",
+            "examples": [
+              "editor"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ProjectAccessUpsert",
+        "description": "Тело запроса на выдачу или изменение доступа."
+      },
+      "ProjectCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
+            "title": "Title",
+            "description": "Название проекта, от 3 до 120 символов",
+            "examples": [
+              "Реконструкция котельной"
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Описание проекта"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "ProjectCreate",
+        "description": "Данные для создания проекта."
+      },
+      "ProjectRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор проекта"
+          },
+          "title": {
+            "title": "Title",
+            "description": "Название проекта"
+          },
+          "description": {
+            "title": "Description",
+            "description": "Описание проекта"
+          },
+          "owner_id": {
+            "title": "Owner Id",
+            "description": "Идентификатор владельца проекта"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент создания проекта"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "owner_id",
+          "created_at"
+        ],
+        "title": "ProjectRead",
+        "description": "Карточка проекта."
+      },
+      "ProjectUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title",
+            "description": "Новое название проекта"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Новое описание проекта"
+          }
+        },
+        "type": "object",
+        "title": "ProjectUpdate",
+        "description": "Изменяемые атрибуты проекта; неуказанные поля не изменяются."
+      },
+      "ServiceInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Название сервиса",
+            "examples": [
+              "Document Center API"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Версия приложения (SemVer)",
+            "examples": [
+              "2.0.0"
+            ]
+          },
+          "api_version": {
+            "type": "string",
+            "title": "Api Version",
+            "description": "Версия публичного контракта",
+            "examples": [
+              "v1"
+            ]
+          },
+          "base_path": {
+            "type": "string",
+            "title": "Base Path",
+            "description": "Базовый путь публичного контракта",
+            "examples": [
+              "/api/v1"
+            ]
+          },
+          "docs": {
+            "type": "string",
+            "title": "Docs",
+            "description": "Адрес Swagger UI",
+            "examples": [
+              "/docs"
+            ]
+          },
+          "redoc": {
+            "type": "string",
+            "title": "Redoc",
+            "description": "Адрес ReDoc",
+            "examples": [
+              "/redoc"
+            ]
+          },
+          "openapi": {
+            "type": "string",
+            "title": "Openapi",
+            "description": "Адрес OpenAPI-схемы",
+            "examples": [
+              "/openapi.json"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "api_version",
+          "base_path",
+          "docs",
+          "redoc",
+          "openapi"
+        ],
+        "title": "ServiceInfo",
+        "description": "Метаданные сервиса и адреса документации."
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "Подписанный JWT; передаётся в заголовке Authorization",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.signature"
+            ]
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Схема токена",
+            "default": "bearer",
+            "examples": [
+              "bearer"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "Token",
+        "description": "Токен доступа, выдаваемый при входе."
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Адрес электронной почты",
+            "examples": [
+              "user@example.com"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password",
+            "description": "Пароль: не менее 8 символов, содержит букву и цифру",
+            "examples": [
+              "Passw0rd123"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "description": "Назначаемая роль",
+            "default": "viewer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserCreate",
+        "description": "Данные для создания учётной записи."
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Адрес электронной почты",
+            "examples": [
+              "user@example.com"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "Пароль в открытом виде",
+            "examples": [
+              "Passw0rd123"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserLogin",
+        "description": "Учётные данные для входа."
+      },
+      "UserRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "description": "Идентификатор пользователя"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Адрес электронной почты"
+          },
+          "role": {
+            "description": "Роль пользователя"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "description": "Признак активности учётной записи"
+          },
+          "created_at": {
+            "title": "Created At",
+            "description": "Момент создания учётной записи"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role",
+          "is_active",
+          "created_at"
+        ],
+        "title": "UserRead",
+        "description": "Карточка пользователя.\n\nХэш пароля и иные внутренние атрибуты в контракт не входят."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "manager",
+          "worker",
+          "viewer"
+        ],
+        "title": "UserRole",
+        "description": "Роль пользователя: admin, manager, worker или viewer."
+      },
+      "UserUpdate": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRole"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Новая роль пользователя"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active",
+            "description": "Признак активности учётной записи"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdate",
+        "description": "Изменяемые атрибуты учётной записи."
+      },
+      "ValidationProblemDetails": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type",
+            "description": "Стабильный URI типа ошибки"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Краткое название типа ошибки, не зависящее от экземпляра"
+          },
+          "status": {
+            "type": "integer",
+            "maximum": 599.0,
+            "minimum": 400.0,
+            "title": "Status",
+            "description": "HTTP-код ответа"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail",
+            "description": "Описание конкретного случая возникновения ошибки"
+          },
+          "instance": {
+            "type": "string",
+            "title": "Instance",
+            "description": "Путь запроса, при обработке которого возникла ошибка"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "type": "array",
+            "title": "Errors",
+            "description": "Перечень полей, не прошедших валидацию"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance"
+        ],
+        "title": "ValidationProblemDetails",
+        "description": "Тело ответа для ошибок валидации запроса (HTTP 422).\n\nРасширяет базовую структуру членом ``errors`` согласно STD-ERR-05.",
+        "examples": [
+          {
+            "detail": "Request body does not match the expected schema",
+            "errors": [
+              {
+                "field": "title",
+                "message": "String should have at least 3 characters"
+              }
+            ],
+            "instance": "/api/v1/projects",
+            "status": 422,
+            "title": "Request validation failed",
+            "type": "https://docs.local/problems/validation-error"
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Вход и получение сведений о текущем пользователе."
+    },
+    {
+      "name": "Users",
+      "description": "Учётные записи пользователей. Только для администратора."
+    },
+    {
+      "name": "Projects",
+      "description": "Проекты — контейнеры документов и единица разграничения доступа."
+    },
+    {
+      "name": "Access",
+      "description": "Доступ участников к проекту: уровни `viewer` и `editor`."
+    },
+    {
+      "name": "Documents",
+      "description": "Документы проекта, их жизненный цикл и версии."
+    },
+    {
+      "name": "Audit",
+      "description": "Журнал действий пользователей. Только для администратора."
+    },
+    {
+      "name": "Health",
+      "description": "Служебные операции вне версии контракта."
+    }
+  ]
+}
