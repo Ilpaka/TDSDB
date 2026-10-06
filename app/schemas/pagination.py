@@ -7,7 +7,7 @@
 from typing import Annotated, Generic, TypeVar
 
 from fastapi import Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 ItemT = TypeVar("ItemT")
 
@@ -18,6 +18,12 @@ MAX_LIMIT = 100
 class Page(BaseModel, Generic[ItemT]):
     """Конверт ответа для любой коллекции публичного API."""
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "description": "Страница коллекции с метаданными пагинации: items, total, offset, limit"
+        }
+    )
+
     items: list[ItemT] = Field(description="Записи текущей страницы")
     total: int = Field(description="Общее количество записей, доступных запросу", ge=0)
     offset: int = Field(description="Смещение текущей страницы от начала коллекции", ge=0)
@@ -27,8 +33,8 @@ class Page(BaseModel, Generic[ItemT]):
 class PaginationParams(BaseModel):
     """Параметры постраничного обхода коллекции."""
 
-    offset: int = 0
-    limit: int = DEFAULT_LIMIT
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
 
 
 def pagination_params(
