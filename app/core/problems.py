@@ -30,11 +30,13 @@ class ProblemSpec:
         slug: Идентификатор типа, образующий стабильный URI.
         title: Название типа ошибки, не зависящее от экземпляра.
         status: HTTP-код ответа.
+        example_detail: Пример описания конкретного случая для документации.
     """
 
     slug: str
     title: str
     status: int
+    example_detail: str = ""
 
     @property
     def type_uri(self) -> str:
@@ -51,42 +53,56 @@ class Problems:
     """
 
     VALIDATION_ERROR = ProblemSpec(
-        "validation-error", "Request validation failed", 422
+        "validation-error", "Request validation failed", 422,
+        "Request does not match the expected schema"
     )
     AUTHENTICATION_REQUIRED = ProblemSpec(
-        "authentication-required", "Authentication required", status.HTTP_401_UNAUTHORIZED
+        "authentication-required", "Authentication required", status.HTTP_401_UNAUTHORIZED,
+        "Valid Bearer token is required to access this operation"
     )
     INVALID_CREDENTIALS = ProblemSpec(
-        "invalid-credentials", "Invalid email or password", status.HTTP_401_UNAUTHORIZED
+        "invalid-credentials", "Invalid email or password", status.HTTP_401_UNAUTHORIZED,
+        "Email or password is incorrect"
     )
-    ACCESS_DENIED = ProblemSpec("access-denied", "Access denied", status.HTTP_403_FORBIDDEN)
+    ACCESS_DENIED = ProblemSpec("access-denied", "Access denied", status.HTTP_403_FORBIDDEN,
+        "Operation requires one of the following roles: admin")
     USER_DEACTIVATED = ProblemSpec(
-        "user-deactivated", "User account is deactivated", status.HTTP_403_FORBIDDEN
+        "user-deactivated", "User account is deactivated", status.HTTP_403_FORBIDDEN,
+        "User account is deactivated"
     )
     PROJECT_NOT_FOUND = ProblemSpec(
-        "project-not-found", "Project not found", status.HTTP_404_NOT_FOUND
+        "project-not-found", "Project not found", status.HTTP_404_NOT_FOUND,
+        "Project 42 does not exist or is unavailable"
     )
     DOCUMENT_NOT_FOUND = ProblemSpec(
-        "document-not-found", "Document not found", status.HTTP_404_NOT_FOUND
+        "document-not-found", "Document not found", status.HTTP_404_NOT_FOUND,
+        "Document 7 does not exist or is unavailable"
     )
-    USER_NOT_FOUND = ProblemSpec("user-not-found", "User not found", status.HTTP_404_NOT_FOUND)
+    USER_NOT_FOUND = ProblemSpec("user-not-found", "User not found", status.HTTP_404_NOT_FOUND,
+        "User 15 does not exist")
     VERSION_NOT_FOUND = ProblemSpec(
-        "version-not-found", "Document version not found", status.HTTP_404_NOT_FOUND
+        "version-not-found", "Document version not found", status.HTTP_404_NOT_FOUND,
+        "Version 3 of document 7 does not exist"
     )
     EMAIL_ALREADY_EXISTS = ProblemSpec(
-        "email-already-exists", "Email already registered", status.HTTP_409_CONFLICT
+        "email-already-exists", "Email already registered", status.HTTP_409_CONFLICT,
+        "Email user@example.com is already registered"
     )
     INVALID_STATE_TRANSITION = ProblemSpec(
-        "invalid-state-transition", "Invalid document state transition", status.HTTP_409_CONFLICT
+        "invalid-state-transition", "Invalid document state transition", status.HTTP_409_CONFLICT,
+        "Cannot change document status from archived to published"
     )
     PAYLOAD_TOO_LARGE = ProblemSpec(
-        "payload-too-large", "Request body too large", 413
+        "payload-too-large", "Request body too large", 413,
+        "Request body must not exceed 1048576 bytes"
     )
     RATE_LIMIT_EXCEEDED = ProblemSpec(
-        "rate-limit-exceeded", "Too many requests", status.HTTP_429_TOO_MANY_REQUESTS
+        "rate-limit-exceeded", "Too many requests", status.HTTP_429_TOO_MANY_REQUESTS,
+        "Too many login attempts; retry in 42 seconds"
     )
     INTERNAL_ERROR = ProblemSpec(
-        "internal-error", "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+        "internal-error", "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "Unexpected error while processing the request"
     )
 
 
@@ -125,21 +141,66 @@ def problem_responses(*specs: ProblemSpec) -> dict[int | str, dict[str, Any]]:
         ...     Problems.AUTHENTICATION_REQUIRED, Problems.PROJECT_NOT_FOUND
         ... )
     """
+    grouped: dict[int, list[ProblemSpec]] = {}
+    for spec in specs:
+        grouped.setdefault(spec.status, []).append(spec)
+
     responses: dict[int | str, dict[str, Any]] = {}
 
-    for spec in specs:
+    for code, group in grouped.items():
         model = (
             ValidationProblemDetails
-            if spec is Problems.VALIDATION_ERROR
+            if Problems.VALIDATION_ERROR in group
             else ProblemDetails
         )
-        responses[spec.status] = {
+        examples = {
+            spec.slug: {"summary": spec.title, "value": _example(spec)} for spec in group
+        }
+        media = {
+            "schema": {"$ref": f"#/components/schemas/{model.__name__}"},
+            "examples": examples,
+        }
+        responses[code] = {
             "model": model,
-            "description": spec.title,
-            "content": {PROBLEM_CONTENT_TYPE: {}},
+            "description": " / ".join(spec.title for spec in group),
+            "content": {
+                "application/json": {"examples": examples},
+                PROBLEM_CONTENT_TYPE: media,
+            },
         }
 
     return responses
+
+
+_EXAMPLE_INSTANCES: dict[str, str] = {
+    "validation-error": "/api/v1/projects",
+    "invalid-credentials": "/api/v1/auth/login",
+    "rate-limit-exceeded": "/api/v1/auth/login",
+    "user-deactivated": "/api/v1/auth/me",
+    "access-denied": "/api/v1/audit",
+    "document-not-found": "/api/v1/documents/7",
+    "invalid-state-transition": "/api/v1/documents/7",
+    "version-not-found": "/api/v1/documents/7/versions/3",
+    "user-not-found": "/api/v1/users/15",
+    "email-already-exists": "/api/v1/users",
+}
+"""Пути запросов в примерах ошибок; по умолчанию — карточка проекта."""
+
+
+def _example(spec: ProblemSpec) -> dict[str, Any]:
+    """Сформировать пример тела ошибки для документации."""
+    body: dict[str, Any] = {
+        "type": spec.type_uri,
+        "title": spec.title,
+        "status": spec.status,
+        "detail": spec.example_detail,
+        "instance": _EXAMPLE_INSTANCES.get(spec.slug, "/api/v1/projects/42"),
+    }
+    if spec is Problems.VALIDATION_ERROR:
+        body["errors"] = [
+            {"field": "title", "message": "String should have at least 3 characters"}
+        ]
+    return body
 
 
 def _render(spec: ProblemSpec, detail: str, request: Request, **extra: Any) -> dict[str, Any]:
