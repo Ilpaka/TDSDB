@@ -1,7 +1,6 @@
 """Схемы пользователей публичного API."""
 
 import re
-from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -48,10 +47,15 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    """Изменяемые атрибуты учётной записи."""
+    """Изменяемые атрибуты учётной записи.
 
-    role: Optional[UserRole] = Field(default=None, description="Новая роль пользователя")
-    is_active: Optional[bool] = Field(
+    Обязательные атрибуты ресурса можно не передавать, но явный ``null``
+    для них отклоняется кодом 422 (STD-DATA-08); ``null`` допускается только
+    для необязательных полей и означает очистку значения.
+    """
+
+    role: UserRole = Field(default=None, description="Новая роль пользователя")
+    is_active: bool = Field(
         default=None, description="Признак активности учётной записи"
     )
 

@@ -234,3 +234,37 @@ def test_error_body_has_no_internal_details(client, admin):
 
     for marker in ("traceback", "select ", "sqlite", "app/", ".py", "jwt_secret"):
         assert marker not in text
+
+
+@pytest.mark.parametrize(
+    "target,body",
+    [
+        ("project", {"title": None}),
+        ("document", {"title": None}),
+        ("document", {"status": None}),
+        ("user", {"role": None}),
+        ("user", {"is_active": None}),
+    ],
+)
+def test_patch_null_for_required_field_returns_422(
+    client, admin, project, document, viewer, target, body
+):
+    """STD-DATA-08: явный null для обязательного атрибута — ошибка валидации."""
+    url = {
+        "project": f"/api/v1/projects/{project['id']}",
+        "document": f"/api/v1/documents/{document['id']}",
+        "user": f"/api/v1/users/{viewer.id}",
+    }[target]
+
+    assert_problem(client.patch(url, json=body, headers=auth_headers(admin)), 422)
+
+
+def test_patch_null_clears_optional_field(client, manager, project):
+    response = client.patch(
+        f"/api/v1/projects/{project['id']}",
+        json={"description": None},
+        headers=auth_headers(manager),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["description"] is None

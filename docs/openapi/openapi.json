@@ -4777,16 +4777,9 @@
       "DocumentUpdate": {
         "properties": {
           "title": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 3
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
             "title": "Title",
             "description": "Новое название документа"
           },
@@ -4804,14 +4797,7 @@
             "description": "Новое содержимое документа"
           },
           "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/DocumentStatus"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "$ref": "#/components/schemas/DocumentStatus",
             "description": "Новое состояние документа. Допустимые переходы: draft в published или archived, published в draft или archived, archived в draft",
             "examples": [
               "published"
@@ -4820,7 +4806,7 @@
         },
         "type": "object",
         "title": "DocumentUpdate",
-        "description": "Изменяемые атрибуты документа; неуказанные поля не изменяются."
+        "description": "Изменяемые атрибуты документа; неуказанные поля не изменяются.\n\nОбязательные атрибуты ресурса можно не передавать, но явный ``null``\nдля них отклоняется кодом 422 (STD-DATA-08); ``null`` допускается только\nдля необязательных полей и означает очистку значения."
       },
       "DocumentVersionRead": {
         "properties": {
@@ -5479,16 +5465,9 @@
       "ProjectUpdate": {
         "properties": {
           "title": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 3
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 3,
             "title": "Title",
             "description": "Новое название проекта"
           },
@@ -5508,7 +5487,7 @@
         },
         "type": "object",
         "title": "ProjectUpdate",
-        "description": "Изменяемые атрибуты проекта; неуказанные поля не изменяются."
+        "description": "Изменяемые атрибуты проекта; неуказанные поля не изменяются.\n\nОбязательные атрибуты ресурса можно не передавать, но явный ``null``\nдля них отклоняется кодом 422 (STD-DATA-08); ``null`` допускается только\nдля необязательных полей и означает очистку значения."
       },
       "ServiceInfo": {
         "properties": {
@@ -5728,32 +5707,18 @@
       "UserUpdate": {
         "properties": {
           "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRole"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "$ref": "#/components/schemas/UserRole",
             "description": "Новая роль пользователя"
           },
           "is_active": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "boolean",
             "title": "Is Active",
             "description": "Признак активности учётной записи"
           }
         },
         "type": "object",
         "title": "UserUpdate",
-        "description": "Изменяемые атрибуты учётной записи."
+        "description": "Изменяемые атрибуты учётной записи.\n\nОбязательные атрибуты ресурса можно не передавать, но явный ``null``\nдля них отклоняется кодом 422 (STD-DATA-08); ``null`` допускается только\nдля необязательных полей и означает очистку значения."
       },
       "ValidationProblemDetails": {
         "properties": {

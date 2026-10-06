@@ -26,9 +26,14 @@ class ProjectCreate(ProjectBase):
 
 
 class ProjectUpdate(BaseModel):
-    """Изменяемые атрибуты проекта; неуказанные поля не изменяются."""
+    """Изменяемые атрибуты проекта; неуказанные поля не изменяются.
 
-    title: Optional[str] = Field(
+    Обязательные атрибуты ресурса можно не передавать, но явный ``null``
+    для них отклоняется кодом 422 (STD-DATA-08); ``null`` допускается только
+    для необязательных полей и означает очистку значения.
+    """
+
+    title: str = Field(
         default=None, min_length=3, max_length=120, description="Новое название проекта"
     )
     description: Optional[str] = Field(
