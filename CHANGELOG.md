@@ -47,7 +47,7 @@
 - Схемы ответов `ServiceInfo` и `HealthStatus` для `/` и `/health`.
 - Скрипт `scripts/create_admin.py` для создания первого администратора.
 - Скрипт `scripts/export_openapi.py` и контракт `docs/openapi/openapi.json`.
-- Контрактные тесты и тесты безопасности (`tests/`, 83 проверки).
+- Контрактные тесты и тесты безопасности (`tests/`, 87 проверок).
 - Документация Sphinx (`docs/source/`), стандарты (`docs/standards/`), аудит (`docs/audit/`).
 - `README.md`, `SECURITY.md`, `CHANGELOG.md`, шаблон Pull Request.
 
