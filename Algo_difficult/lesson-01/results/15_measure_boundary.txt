@@ -1,0 +1,2 @@
+setup + search: 0.013600 sec
+search only:    0.006306 sec

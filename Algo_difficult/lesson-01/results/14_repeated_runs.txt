@@ -1,0 +1,8 @@
+run 1: 0.018713 sec
+run 2: 0.018960 sec
+run 3: 0.019198 sec
+run 4: 0.018317 sec
+run 5: 0.018235 sec
+run 6: 0.018808 sec
+run 7: 0.018195 sec
+median: 0.018713 sec
