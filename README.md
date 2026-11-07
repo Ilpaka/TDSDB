@@ -2,6 +2,8 @@
 
 Домашние и проверочные работы по дисциплинам курса.
 
+- `lesson_03/` — каталог товаров и приёмка поставки ([отчёт](lesson_03/homework_03.md)).
+- `lesson_04/` — планы запросов и индексы MongoDB ([отчёт](lesson_04/README.md)).
 - `MongoDB/` — инфраструктура: `docker-compose.yml`, `Makefile`, init-скрипт для загрузки данных при старте.
 - `lesson-01/` — каталог серверов в аренду: документы, запросы, разбор дублирования.
 - `api-standardization/` — проверочная работа «Audit API»: стандартизация и оценка соответствия REST API (FastAPI, OpenAPI, OWASP API Top 10). Итоговое заключение — [`CERTIFICATION_REPORT.md`](api-standardization/docs/audit/CERTIFICATION_REPORT.md).

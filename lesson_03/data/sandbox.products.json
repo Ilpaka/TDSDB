@@ -1,0 +1,586 @@
+[
+ {
+  "_id": "p-001",
+  "sku": "SKU-NB-001",
+  "title": "Ноутбук Lenovo IdeaPad 3",
+  "brand": "Lenovo",
+  "category": "ноутбуки",
+  "price": 42990,
+  "specs": [
+   "15.6\"",
+   "8 ГБ",
+   "SSD 512 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 5
+   }
+  ],
+  "rating": 4.2,
+  "reviews": 57,
+  "added": {
+   "$date": "2026-02-05T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-002",
+  "sku": "SKU-NB-002",
+  "title": "Ноутбук ASUS VivoBook 15",
+  "brand": "ASUS",
+  "category": "ноутбуки",
+  "price": 51490,
+  "specs": [
+   "15.6\"",
+   "16 ГБ",
+   "SSD 512 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 40
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 20
+   },
+   {
+    "warehouse": "Москва-2",
+    "qty": 20
+   }
+  ],
+  "rating": 4.3,
+  "reviews": 139,
+  "added": {
+   "$date": "2026-03-02T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-003",
+  "sku": "SKU-NB-003",
+  "title": "Ноутбук HP Pavilion 14",
+  "brand": "HP",
+  "category": "ноутбуки",
+  "price": 67900,
+  "specs": [
+   "14\"",
+   "16 ГБ",
+   "SSD 1 ТБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 3
+   }
+  ],
+  "rating": 4.5,
+  "reviews": 31,
+  "added": {
+   "$date": "2026-02-21T00:00:00.000Z"
+  },
+  "discount": 10
+ },
+ {
+  "_id": "p-004",
+  "sku": "SKU-NB-004",
+  "title": "Ноутбук Apple MacBook Air 13",
+  "brand": "Apple",
+  "category": "ноутбуки",
+  "price": 114990,
+  "specs": [
+   "13.6\"",
+   "16 ГБ",
+   "SSD 512 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 12
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 5
+   }
+  ],
+  "rating": 4.1,
+  "reviews": 73,
+  "added": {
+   "$date": "2026-03-30T00:00:00.000Z"
+  },
+  "discount": 5
+ },
+ {
+  "_id": "p-005",
+  "sku": "SKU-NB-005",
+  "title": "Ноутбук Acer Nitro V15",
+  "brand": "Acer",
+  "category": "ноутбуки",
+  "price": 89990,
+  "specs": [
+   "15.6\"",
+   "16 ГБ",
+   "RTX 4050"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 0
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 40
+   }
+  ],
+  "rating": 4.6,
+  "reviews": 0,
+  "added": {
+   "$date": "2026-03-26T00:00:00.000Z"
+  },
+  "discount": 20
+ },
+ {
+  "_id": "p-006",
+  "sku": "SKU-PH-006",
+  "title": "Смартфон Xiaomi Redmi Note 13",
+  "brand": "Xiaomi",
+  "category": "смартфоны",
+  "price": 18990,
+  "specs": [
+   "6.67\"",
+   "128 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 3
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 5
+   }
+  ],
+  "rating": 3.7,
+  "reviews": 139,
+  "added": {
+   "$date": "2026-04-11T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-007",
+  "sku": "SKU-PH-007",
+  "title": "Смартфон Samsung Galaxy A55",
+  "brand": "Samsung",
+  "category": "смартфоны",
+  "price": 32990,
+  "specs": [
+   "6.6\"",
+   "256 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 0
+   }
+  ],
+  "rating": 4.6,
+  "reviews": 234,
+  "added": {
+   "$date": "2026-03-06T00:00:00.000Z"
+  },
+  "discount": 5
+ },
+ {
+  "_id": "p-008",
+  "sku": "SKU-PH-008",
+  "title": "Смартфон Apple iPhone 15",
+  "brand": "Apple",
+  "category": "смартфоны",
+  "price": 79990,
+  "specs": [
+   "6.1\"",
+   "128 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 5
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 40
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 20
+   }
+  ],
+  "rating": 4.5,
+  "reviews": 136,
+  "added": {
+   "$date": "2026-06-01T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-009",
+  "sku": "SKU-PH-009",
+  "title": "Смартфон realme 12 Pro",
+  "brand": "realme",
+  "category": "смартфоны",
+  "price": 27490,
+  "specs": [
+   "6.7\"",
+   "256 ГБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 0
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 3
+   }
+  ],
+  "rating": 3.8,
+  "reviews": 96,
+  "added": {
+   "$date": "2026-01-11T00:00:00.000Z"
+  },
+  "discount": 20
+ },
+ {
+  "_id": "p-010",
+  "sku": "SKU-PR-010",
+  "title": "Клавиатура Keychron K2",
+  "brand": "Keychron",
+  "category": "периферия",
+  "price": 8990,
+  "specs": [
+   "механическая",
+   "Bluetooth"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 3
+   },
+   {
+    "warehouse": "Москва-2",
+    "qty": 12
+   }
+  ],
+  "rating": 4.1,
+  "reviews": 225,
+  "added": {
+   "$date": "2026-04-09T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-011",
+  "sku": "SKU-PR-011",
+  "title": "Мышь Logitech MX Master 3S",
+  "brand": "Logitech",
+  "category": "периферия",
+  "price": 9490,
+  "specs": [
+   "беспроводная",
+   "8000 dpi"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 40
+   },
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 20
+   }
+  ],
+  "rating": 4.1,
+  "reviews": 117,
+  "added": {
+   "$date": "2026-05-07T00:00:00.000Z"
+  },
+  "discount": 20
+ },
+ {
+  "_id": "p-012",
+  "sku": "SKU-PR-012",
+  "title": "Монитор Dell P2422H",
+  "brand": "Dell",
+  "category": "периферия",
+  "price": 21990,
+  "specs": [
+   "24\"",
+   "IPS",
+   "75 Гц"
+  ],
+  "stock": [
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 0
+   }
+  ],
+  "rating": 3.7,
+  "reviews": 80,
+  "added": {
+   "$date": "2026-04-19T00:00:00.000Z"
+  },
+  "discount": 5
+ },
+ {
+  "_id": "p-013",
+  "sku": "SKU-PR-013",
+  "title": "Наушники Sony WH-1000XM5",
+  "brand": "Sony",
+  "category": "периферия",
+  "price": 34990,
+  "specs": [
+   "накладные",
+   "шумоподавление"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 0
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 40
+   }
+  ],
+  "rating": 4.3,
+  "reviews": 178,
+  "added": {
+   "$date": "2026-04-28T00:00:00.000Z"
+  },
+  "discount": 20
+ },
+ {
+  "_id": "p-014",
+  "sku": "SKU-PR-014",
+  "title": "Веб-камера Logitech C920",
+  "brand": "Logitech",
+  "category": "периферия",
+  "price": 6790,
+  "specs": [
+   "1080p",
+   "USB"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 5
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 3
+   }
+  ],
+  "rating": 4.9,
+  "reviews": 229,
+  "added": {
+   "$date": "2026-03-31T00:00:00.000Z"
+  },
+  "discount": 15
+ },
+ {
+  "_id": "p-015",
+  "sku": "SKU-CP-015",
+  "title": "SSD Samsung 980 1 ТБ",
+  "brand": "Samsung",
+  "category": "комплектующие",
+  "price": 7890,
+  "specs": [
+   "NVMe",
+   "1 ТБ"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 0
+   },
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 12
+   }
+  ],
+  "rating": 3.9,
+  "reviews": 224,
+  "added": {
+   "$date": "2026-07-19T00:00:00.000Z"
+  },
+  "discount": 15
+ },
+ {
+  "_id": "p-016",
+  "sku": "SKU-CP-016",
+  "title": "Оперативная память Kingston 16 ГБ",
+  "brand": "Kingston",
+  "category": "комплектующие",
+  "price": 4590,
+  "specs": [
+   "DDR4",
+   "3200 МГц"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-1",
+    "qty": 40
+   },
+   {
+    "warehouse": "Москва-2",
+    "qty": 8
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 20
+   }
+  ],
+  "rating": 4.8,
+  "reviews": 138,
+  "added": {
+   "$date": "2026-04-14T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-017",
+  "sku": "SKU-CP-017",
+  "title": "Видеокарта NVIDIA RTX 4060",
+  "brand": "NVIDIA",
+  "category": "комплектующие",
+  "price": 38990,
+  "specs": [
+   "8 ГБ",
+   "PCIe 4.0"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 40
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 20
+   }
+  ],
+  "rating": 4.5,
+  "reviews": 65,
+  "added": {
+   "$date": "2026-05-12T00:00:00.000Z"
+  },
+  "discount": 10
+ },
+ {
+  "_id": "p-018",
+  "sku": "SKU-CP-018",
+  "title": "Блок питания be quiet! 650 Вт",
+  "brand": "be quiet!",
+  "category": "комплектующие",
+  "price": 8490,
+  "specs": [
+   "650 Вт",
+   "80+ Gold"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 12
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 3
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 0
+   }
+  ],
+  "rating": 4.3,
+  "reviews": 152,
+  "added": {
+   "$date": "2026-02-10T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-019",
+  "sku": "SKU-AC-019",
+  "title": "Рюкзак для ноутбука Xiaomi",
+  "brand": "Xiaomi",
+  "category": "аксессуары",
+  "price": 2990,
+  "specs": [
+   "15.6\"",
+   "водоотталкивающий"
+  ],
+  "stock": [
+   {
+    "warehouse": "Санкт-Петербург",
+    "qty": 0
+   },
+   {
+    "warehouse": "Екатеринбург",
+    "qty": 20
+   }
+  ],
+  "rating": 4.0,
+  "reviews": 108,
+  "added": {
+   "$date": "2026-03-03T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-020",
+  "sku": "SKU-AC-020",
+  "title": "Кабель USB-C 2 м",
+  "brand": "OEM",
+  "category": "аксессуары",
+  "price": 790,
+  "specs": [
+   "USB-C",
+   "2 м"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 8
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 12
+   }
+  ],
+  "rating": 4.0,
+  "reviews": 39,
+  "added": {
+   "$date": "2026-04-12T00:00:00.000Z"
+  }
+ },
+ {
+  "_id": "p-021",
+  "sku": "SKU-AC-021",
+  "title": "Powerbank Anker 20000 мА·ч",
+  "brand": "Anker",
+  "category": "аксессуары",
+  "price": 4290,
+  "specs": [
+   "20000 мА·ч",
+   "65 Вт"
+  ],
+  "stock": [
+   {
+    "warehouse": "Москва-2",
+    "qty": 12
+   },
+   {
+    "warehouse": "Москва-1",
+    "qty": 5
+   }
+  ],
+  "rating": 4.6,
+  "reviews": 215,
+  "added": {
+   "$date": "2026-07-19T00:00:00.000Z"
+  }
+ }
+]
