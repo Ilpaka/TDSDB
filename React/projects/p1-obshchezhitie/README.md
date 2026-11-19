@@ -28,6 +28,8 @@ npm run lint
 npm run dev
 ```
 
-Откройте `http://localhost:5173`. Для проверки уведомления сначала запустите n8n по инструкции. Снимок реального сообщения предстоит приложить после подключения учебного бота.
+Откройте `http://localhost:5173`. Для проверки уведомления сначала запустите n8n по инструкции. 20 ноября 2026 года бот доставил в личный чат заявку о неисправной лампе в комнате 308.
+
+![Уведомление о лампе в комнате 308 в личном чате Telegram](../../avtomatizaciya/telegram-zayavki.png)
 
 [Задание и критерии](https://maximbytecamp.github.io/angular_react_makarov/temy/19-proekt-doska-zayavok/index.html) · [Основа после главы 1.7](https://github.com/Ilpaka/TDSDB/tree/6f65b101da85ce37aa1bb6c3b2ecdde0ece5da68/React/zayavki) · [Автоматизация](../../avtomatizaciya/README.md) · [Журнал работы с ИИ](ai-log.md).
