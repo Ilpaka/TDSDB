@@ -7,7 +7,7 @@
 | Опубликованная сводка | [Мониторинг сайтов на GitHub Pages](https://ilpaka.github.io/monitoring/) |
 | Код, команды запуска и настройки | [Ilpaka/monitoring](https://github.com/Ilpaka/monitoring) |
 | Страница отдельного сайта | [История ChromaSync](https://ilpaka.github.io/monitoring/site/chromasync) |
-| Результат запуска | [Ночная проверка, коммит бота и публикация](https://github.com/Ilpaka/monitoring/actions/runs/44540119396) |
+| Результат запуска | [Ночная проверка, коммит бота и публикация](https://github.com/Ilpaka/monitoring/actions/runs/44630757011) |
 | Работа с ИИ | [Журнал проекта](ai-log.md) |
 
 ## Что выполнено
@@ -23,7 +23,7 @@
 
 ## Сайты группы
 
-20 ноября пять временных страниц заменены сайтами трёх одногруппников. Измеряются два монитора, LeBron James Ventures, ChromaSync и сайт футбольной секции «Высота». Каждому адресу присвоен новый ID. При первом опросе все пять ответили HTTP 200. [Список адресов](https://github.com/Ilpaka/monitoring/blob/main/public/data/sites.json).
+20 ноября пять временных страниц заменены сайтами трёх одногруппников. Измеряются два монитора, LeBron James Ventures, ChromaSync и сайт футбольной секции «Высота». Каждому адресу присвоен новый ID. При первом опросе все пять ответили HTTP 200. Те же пять адресов проверил GitHub Actions. [Список адресов](https://github.com/Ilpaka/monitoring/blob/main/public/data/sites.json).
 
 Выполнена обязательная часть приложения и автоматизации. Дополнительные задания по выбору в проект не включены.
 
