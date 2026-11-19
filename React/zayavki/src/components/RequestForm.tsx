@@ -2,7 +2,7 @@ import { useState, type SubmitEvent } from 'react'
 import type { Category, NewRequest } from '../requests'
 
 type RequestFormProps = {
-  onAdd: (request: NewRequest) => void
+  onAdd: (request: NewRequest) => Promise<void>
 }
 
 function RequestForm({ onAdd }: RequestFormProps) {
@@ -12,18 +12,27 @@ function RequestForm({ onAdd }: RequestFormProps) {
   const [details, setDetails] = useState('')
   const [error, setError] = useState('')
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  const [sending, setSending] = useState(false)
+
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     if (title.trim() === '' || room.trim() === '') {
       setError('Заполните поля «Что случилось» и «Кабинет».')
       return
     }
-    onAdd({ title: title.trim(), room: room.trim(), category, details: details.trim() })
-    setTitle('')
-    setRoom('')
-    setCategory('Компьютер')
-    setDetails('')
-    setError('')
+    setSending(true)
+    try {
+      await onAdd({ title: title.trim(), room: room.trim(), category, details: details.trim() })
+      setTitle('')
+      setRoom('')
+      setCategory('Компьютер')
+      setDetails('')
+      setError('')
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -70,7 +79,7 @@ function RequestForm({ onAdd }: RequestFormProps) {
 
       {error !== '' && <p className="form__error" role="alert">{error}</p>}
 
-      <button type="submit">Отправить заявку</button>
+      <button type="submit" disabled={sending}>Отправить заявку</button>
     </form>
   )
 }

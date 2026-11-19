@@ -206,3 +206,25 @@ body {
   color: #1f2430;
   font-size: 14px;
 }
+
+.load-error {
+  padding: 16px;
+  border: 1px solid #f3b8b8;
+  border-radius: 8px;
+  background: #fde8e8;
+  color: #b42318;
+}
+
+.load-error p {
+  margin: 0 0 10px;
+}
+
+.load-error button {
+  padding: 6px 14px;
+  border: 1px solid #b42318;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #b42318;
+  font: inherit;
+  cursor: pointer;
+}
