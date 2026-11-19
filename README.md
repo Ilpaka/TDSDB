@@ -2,6 +2,7 @@
 
 Домашние и проверочные работы по дисциплинам курса.
 
+- [React](React/README.md) — работы по дисциплине «Angular и React».
 - `lesson_03/` — каталог товаров и приёмка поставки ([отчёт](lesson_03/homework_03.md)).
 - `lesson_04/` — планы запросов и индексы MongoDB ([отчёт](lesson_04/README.md)).
 - `MongoDB/` — инфраструктура: `docker-compose.yml`, `Makefile`, init-скрипт для загрузки данных при старте.
