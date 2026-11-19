@@ -7,9 +7,27 @@ services:
       - GENERIC_TIMEZONE=Europe/Moscow
       - TZ=Europe/Moscow
       - N8N_DEFAULT_LOCALE=en
-      - 'CREDENTIALS_OVERWRITE_DATA={"telegramApi":{"accessToken":"${TELEGRAM_BOT_TOKEN:?Заполните TELEGRAM_BOT_TOKEN в .env}"}}'
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - 'CREDENTIALS_OVERWRITE_DATA={"telegramApi":{"accessToken":"${TELEGRAM_BOT_TOKEN:-}"}}'
     volumes:
       - n8n_data:/home/node/.n8n
 
+  pocketbase:
+    build: ./pocketbase
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - pb_data:/pb/pb_data
+
+  ollama:
+    image: ollama/ollama:0.40.12
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
 volumes:
   n8n_data:
+  pb_data:
+  ollama_data:
