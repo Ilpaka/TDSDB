@@ -10,8 +10,13 @@
 
 | Работа модуля 2 | Папка |
 |---|---|
-| Доска ИТ-отдела по главам 2.1–2.5 | [zayavki/](zayavki/README.md) |
+| Доска ИТ-отдела по главам 2.1–2.5 | [Версия после главы 2.5](https://github.com/Ilpaka/TDSDB/tree/a608c57236277a3a51dd03ffa2aad1d2b4489bf9/React/zayavki) |
 | Общежитие с общей базой PocketBase | [projects/p2-obshchezhitie/](projects/p2-obshchezhitie/README.md) |
 | ИИ-диспетчер и кнопка «Взять» | [Два процесса n8n](projects/p2-obshchezhitie/n8n/) |
+
+| Работа модуля 3 | Где открыть |
+|---|---|
+| Маршруты и контекст доски ИТ-отдела | [zayavki/](zayavki/README.md) |
+| Мониторинг сайтов и ночные оповещения | [Отчёт и журнал](projects/p3-monitoring/README.md) · [Опубликованный сайт](https://ilpaka.github.io/monitoring/) |
 
 [Справочник курса](https://maximbytecamp.github.io/angular_react_makarov/) · [Правила сдачи](https://github.com/MaximBytecamp/react-kurs-template/blob/main/docs/SUBMIT.md)
