@@ -1,0 +1,77 @@
+# После каждой отправки проверяет работы: нет ли в коммите секретов, собираются ли проекты.
+# Запустить вручную: вкладка Actions → «Проверка работ» → Run workflow.
+name: Проверка работ
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Секреты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Нет файлов .env и токенов бота
+        run: |
+          bad=0
+          env_files=$(git ls-files | grep -E '(^|/)\.env(\..+)?$' | grep -v '\.env\.example$' || true)
+          if [ -n "$env_files" ]; then
+            echo "::error::В репозитории файл с секретами: $env_files. Удалите его из Git и отзовите токен у @BotFather."
+            bad=1
+          fi
+          tokens=$(git grep -lE '[0-9]{8,10}:[A-Za-z0-9_-]{35}' -- . ':!package-lock.json' || true)
+          if [ -n "$tokens" ]; then
+            echo "::error::Похоже на токен бота Telegram в файлах: $tokens. Отзовите токен у @BotFather (/revoke)."
+            bad=1
+          fi
+          if [ "$bad" = 0 ]; then echo "Секретов в репозитории нет."; fi
+          exit $bad
+
+  build:
+    name: Сборка и линтер
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Конфигурация автоматизации
+        working-directory: React/avtomatizaciya
+        env:
+          TELEGRAM_BOT_TOKEN: local-config-check
+        run: |
+          docker compose config --quiet
+          jq -e '(.nodes[] | select(.name == "Webhook") | .parameters.httpMethod == "POST" and .parameters.path == "zayavka")
+            and (.connections.Webhook.main[0][0].node == "Telegram")' zayavka-telegram.json
+      - name: npm ci, build, lint в каждой папке с package.json
+        run: |
+          dirs=$(find . -name package.json -not -path '*/node_modules/*' -not -path './.github/*' -exec dirname {} \; | sort)
+          echo "## Проверка работ" >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$dirs" ]; then
+            echo "Папок с package.json пока нет." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "| Папка | npm ci | build | lint |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          failed=0
+          for d in $dirs; do
+            echo "::group::$d"
+            ci=❌; build=—; lint=—
+            if (cd "$d" && npm ci --no-audit --no-fund); then
+              ci=✅
+              if (cd "$d" && npm run build); then build=✅; else build=❌; failed=1; echo "::error::$d: npm run build завершился с ошибкой"; fi
+              if (cd "$d" && npm run lint); then lint=✅; else lint=❌; failed=1; echo "::error::$d: npm run lint нашёл ошибки"; fi
+            else
+              failed=1; echo "::error::$d: npm ci не прошёл — нет package-lock.json или он не совпадает с package.json"
+            fi
+            echo "::endgroup::"
+            echo "| \`$d\` | $ci | $build | $lint |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          exit $failed
