@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import type { Category, Status } from '../requests'
 
 type RequestCardProps = {
+  id: string
   title: string
   room: string
   category: Category
@@ -11,7 +13,7 @@ type RequestCardProps = {
   onRemove: () => void
 }
 
-function RequestCard({ title, room, category, details, status, onNext, onRemove }: RequestCardProps) {
+function RequestCard({ id, title, room, category, details, status, onNext, onRemove }: RequestCardProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -20,7 +22,9 @@ function RequestCard({ title, room, category, details, status, onNext, onRemove 
         <span className="card__room">каб. {room} · {category}</span>
         <span className="card__status">{status}</span>
       </div>
-      <h3>{title}</h3>
+      <h3>
+        <Link to={`/requests/${id}`}>{title}</Link>
+      </h3>
       {open && <p>{details}</p>}
       <div className="card__actions">
         <button className="card__more" onClick={() => setOpen(!open)}>
