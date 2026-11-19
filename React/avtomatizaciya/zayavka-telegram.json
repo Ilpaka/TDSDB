@@ -1,0 +1,37 @@
+{
+  "name": "Заявка → Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zayavka",
+        "options": {
+          "allowedOrigins": "http://localhost:5173"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "webhookId": "zayavka"
+    },
+    {
+      "parameters": {
+        "chatId": "",
+        "text": "=Новая заявка: {{ $json.body.title }}\n{{ $json.body.placeLabel === 'Комната' ? 'Комната' : 'Кабинет' }}: {{ $json.body.room }} · {{ $json.body.category }}\n{{ $json.body.details }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Telegram", "type": "main", "index": 0 }]]
+    }
+  }
+}

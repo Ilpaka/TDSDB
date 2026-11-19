@@ -1,0 +1,15 @@
+services:
+  n8n:
+    image: n8nio/n8n:2.45.4
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=Europe/Moscow
+      - TZ=Europe/Moscow
+      - N8N_DEFAULT_LOCALE=en
+      - 'CREDENTIALS_OVERWRITE_DATA={"telegramApi":{"accessToken":"${TELEGRAM_BOT_TOKEN:?Заполните TELEGRAM_BOT_TOKEN в .env}"}}'
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
