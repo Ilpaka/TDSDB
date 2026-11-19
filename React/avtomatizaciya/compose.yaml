@@ -8,6 +8,9 @@ services:
       - TZ=Europe/Moscow
       - N8N_DEFAULT_LOCALE=en
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - DIGEST_URL=${DIGEST_URL:-}
+      - DIGEST_KEY=${DIGEST_KEY:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
       - 'CREDENTIALS_OVERWRITE_DATA={"telegramApi":{"accessToken":"${TELEGRAM_BOT_TOKEN:-}"}}'
     volumes:

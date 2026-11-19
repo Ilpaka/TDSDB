@@ -19,4 +19,8 @@
 | Маршруты и контекст доски ИТ-отдела | [zayavki/](zayavki/README.md) |
 | Мониторинг сайтов и ночные оповещения | [Отчёт и журнал](projects/p3-monitoring/README.md) · [Опубликованный сайт](https://ilpaka.github.io/monitoring/) |
 
+| Работа модуля 4 | Где открыть |
+|---|---|
+| Дайджест новостей и два процесса n8n | [Отчёт и журнал](projects/p4-digest/README.md) · [Дайджест на GitHub Pages](https://ilpaka.github.io/digest/) |
+
 [Справочник курса](https://maximbytecamp.github.io/angular_react_makarov/) · [Правила сдачи](https://github.com/MaximBytecamp/react-kurs-template/blob/main/docs/SUBMIT.md)
