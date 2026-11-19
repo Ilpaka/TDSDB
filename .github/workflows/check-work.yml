@@ -75,3 +75,6 @@ jobs:
             echo "| \`$d\` | $ci | $build | $lint |" >> "$GITHUB_STEP_SUMMARY"
           done
           exit $failed
+      - name: Проверить страницу Angular из главы 4.4
+        working-directory: React/monitoring-ng
+        run: npm test

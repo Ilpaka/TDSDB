@@ -24,3 +24,16 @@
 | Дайджест новостей и два процесса n8n | [Отчёт и журнал](projects/p4-digest/README.md) · [Дайджест на GitHub Pages](https://ilpaka.github.io/digest/) |
 
 [Справочник курса](https://maximbytecamp.github.io/angular_react_makarov/) · [Правила сдачи](https://github.com/MaximBytecamp/react-kurs-template/blob/main/docs/SUBMIT.md)
+
+## Где посмотреть код из глав
+
+| Главы | Что открыть |
+|---|---|
+| 1.1–1.7 | [Доска с компонентами, формой и сохранением в браузере](https://github.com/Ilpaka/TDSDB/tree/6f65b101da85ce37aa1bb6c3b2ecdde0ece5da68/React/zayavki/src) |
+| 2.1 | [Таймер и заголовок вкладки](zayavki/src/BoardProvider.tsx) · [сброс фильтра по Esc](zayavki/src/pages/BoardPage.tsx) |
+| 2.2–2.3 | [Коллекции и правила PocketBase](avtomatizaciya/pocketbase/pb_migrations/1795046400_request_boards.js) · [запросы к базе](zayavki/src/api.ts) |
+| 2.4–2.5 | [Хук загрузки и изменения списка](zayavki/src/useRequests.ts) · [подписка на события](zayavki/src/realtime.ts) |
+| 3.1–3.2 | [Маршруты](zayavki/src/App.tsx) · [общие данные страниц](zayavki/src/BoardProvider.tsx) |
+| 3.3–3.4 | [Публикация и ночная проверка сайтов группы](https://github.com/Ilpaka/monitoring/tree/main/.github/workflows) |
+| 4.1–4.3 | [Тесты, доступность и фильтры монитора](https://github.com/Ilpaka/monitoring) · [журнал задания агенту](https://github.com/Ilpaka/monitoring/blob/main/ai-log.md) |
+| 4.4 | [Та же страница на Angular и четыре теста](monitoring-ng/README.md) |

@@ -1,0 +1,44 @@
+{
+  "history": [
+    {
+      "time": "2026-11-19T22:35:28.420Z",
+      "checks": [
+        {
+          "id": "madagaskar-monitor",
+          "ok": true,
+          "status": 200,
+          "ms": 635,
+          "error": ""
+        },
+        {
+          "id": "lebron",
+          "ok": true,
+          "status": 200,
+          "ms": 599,
+          "error": ""
+        },
+        {
+          "id": "desai-monitor",
+          "ok": true,
+          "status": 200,
+          "ms": 722,
+          "error": ""
+        },
+        {
+          "id": "chromasync",
+          "ok": true,
+          "status": 200,
+          "ms": 684,
+          "error": ""
+        },
+        {
+          "id": "vysota",
+          "ok": true,
+          "status": 200,
+          "ms": 355,
+          "error": ""
+        }
+      ]
+    }
+  ]
+}

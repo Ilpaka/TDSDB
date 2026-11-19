@@ -1,0 +1,29 @@
+@if (monitoring.loading()) {
+  <p class="empty" role="status">Загрузка результатов…</p>
+} @else if (monitoring.error()) {
+  <p class="load-error" role="alert">{{ monitoring.error() }}</p>
+} @else {
+  <p class="summary" [class.summary--bad]="down() > 0">{{ summary() }}</p>
+  <div class="filters">
+    <label>
+      Поиск по названию
+      <input type="search" [value]="query()" (input)="query.set($any($event.target).value)" />
+    </label>
+    <label>
+      <input type="checkbox" [checked]="onlyDown()" (change)="onlyDown.set($any($event.target).checked)" />
+      Только неработающие
+    </label>
+  </div>
+  @if (shown().length === 0) {
+    <p class="empty">Сайтов не найдено</p>
+  }
+  <div class="sites">
+    @for (site of shown(); track site.id) {
+      <a class="site" [class.site--bad]="check(site.id)?.ok === false" [routerLink]="['/site', site.id]">
+        <h2>{{ site.name }}</h2>
+        <span class="site__status">{{ status(site.id) }}</span>
+        <span class="site__url">{{ site.url }}</span>
+      </a>
+    }
+  </div>
+}
