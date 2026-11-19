@@ -30,4 +30,4 @@ npm run dev
 
 Откройте `http://localhost:5173`. Для проверки уведомления сначала запустите n8n по инструкции. Снимок реального сообщения предстоит приложить после подключения учебного бота.
 
-[Задание и критерии](https://maximbytecamp.github.io/angular_react_makarov/temy/19-proekt-doska-zayavok/index.html) · [Основа по главам](../../zayavki/README.md) · [Автоматизация](../../avtomatizaciya/README.md) · [Журнал работы с ИИ](ai-log.md).
+[Задание и критерии](https://maximbytecamp.github.io/angular_react_makarov/temy/19-proekt-doska-zayavok/index.html) · [Основа после главы 1.7](https://github.com/Ilpaka/TDSDB/tree/6f65b101da85ce37aa1bb6c3b2ecdde0ece5da68/React/zayavki) · [Автоматизация](../../avtomatizaciya/README.md) · [Журнал работы с ИИ](ai-log.md).

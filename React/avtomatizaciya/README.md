@@ -6,7 +6,7 @@
 
 1. В Telegram создайте учебного бота через `/newbot` у @BotFather. Откройте личный чат с ботом и нажмите **Start**.
 2. В папке `React/avtomatizaciya` выполните `cp .env.example .env`. В локальном `.env` укажите токен после `TELEGRAM_BOT_TOKEN=`. Git игнорирует этот файл. Docker Compose подставляет значение в настройки учётных данных Telegram при запуске n8n.
-3. Запустите Docker Desktop и выполните `docker compose up -d`. Откройте `http://localhost:5678` и при первом входе создайте локального владельца.
+3. Запустите Docker Desktop и выполните `docker compose up -d n8n`. Откройте `http://localhost:5678` и при первом входе создайте локального владельца.
 4. Создайте процесс в n8n. В меню **Import from File** выберите [zayavka-telegram.json](zayavka-telegram.json). В узле **Telegram** создайте и выберите учётные данные типа **Telegram API**. Токен уже задан сервером.
 5. Укажите **Chat ID** своего личного чата в узле Telegram и нажмите **Publish**. Номер можно узнать из поля `message.chat.id` ответа `getUpdates` учебного бота после сообщения в чат. [Иллюстрированная инструкция, §3](https://maximbytecamp.github.io/angular_react_makarov/temy/18-avtomatizaciya/index.html#s3).
 
@@ -19,3 +19,7 @@
 Чтобы проверить поведение при отключении сервиса, выполните `docker compose stop` и отправьте ещё одну заявку. Доска сохранит карточку и покажет ошибку уведомления. Для повторного запуска выполните `docker compose start`.
 
 [Исходный процесс преподавателя](https://github.com/MaximBytecamp/angular_react_makarov/blob/d2935a16a7a9f15f82459e410300940c25d7ae5f/tools/n8n/zayavka-telegram.json) · [Журнал работы с ИИ](ai-log.md).
+
+## Модуль 2
+
+В этом же файле Compose описаны PocketBase и Ollama. Для работы доски достаточно `docker compose up -d --build pocketbase`. Порядок запуска модели, подключения двух процессов и проверки кнопки приведён в [проекте модуля 2](../projects/p2-obshchezhitie/README.md).

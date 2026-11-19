@@ -1,0 +1,198 @@
+{
+  "name": "ИИ-диспетчер",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zayavka-obshchezhitie",
+        "options": {
+          "allowedOrigins": "http://localhost:5173"
+        }
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "zayavka-obshchezhitie",
+      "id": "1039a82e-db5b-5add-b5f8-c01652acbef7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/api/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  model: 'qwen2.5:3b',\n  stream: false,\n  options: { temperature: 0 },\n  format: {\n    type: 'object',\n    properties: {\n      category: { type: 'string', enum: ['Сантехника', 'Электрика', 'Мебель', 'Интернет'] },\n      urgent: { type: 'boolean' },\n      summary: { type: 'string' }\n    },\n    required: ['category', 'urgent', 'summary']\n  },\n  messages: [\n    { role: 'system', content: 'Ты диспетчер общежития. По заявке определи категорию (Сантехника, Электрика, Мебель, Интернет), срочность и напиши краткое описание до 12 слов. Срочно — если идёт затопление, есть открытые провода, запах гари или другой непосредственный риск для жильцов. Выбирай по теме и подробностям. Категория от автора может быть ошибочной. Wi-Fi и сеть относятся к Интернету, трубы и краны — к Сантехнике, розетки и освещение — к Электрике, шкафы и стулья — к Мебели. Отвечай только JSON.' },\n    { role: 'user', content: 'Что случилось: ' + $json.body.title + '\\nКомната: ' + $json.body.room + '\\nКатегория от автора: ' + $json.body.category + '\\nПодробности: ' + $json.body.details }\n  ]\n} }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "name": "Модель",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "2a83de3a-33b7-573c-913d-89ae2ceafb18"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "id",
+              "value": "={{ $('Webhook').item.json.body.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "title",
+              "value": "={{ $('Webhook').item.json.body.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "room",
+              "value": "={{ $('Webhook').item.json.body.room }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "category",
+              "value": "={{ JSON.parse($json.message.content).category }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "urgent",
+              "value": "={{ JSON.parse($json.message.content).urgent }}",
+              "type": "boolean"
+            },
+            {
+              "id": "a6",
+              "name": "summary",
+              "value": "={{ JSON.parse($json.message.content).summary }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Ответ модели",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        0
+      ],
+      "id": "1011b3d9-90a5-5890-b015-b8c45cbbdc44"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://pocketbase:8090/api/collections/obshchezhitie/records/{{ $json.id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { category: $json.category } }}",
+        "options": {}
+      },
+      "name": "Категория в базу",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "fe551671-70fb-5980-ad41-7a9bc4778cd3"
+    },
+    {
+      "parameters": {
+        "chatId": "",
+        "text": "={{ $('Ответ модели').item.json.urgent ? '🔴 СРОЧНО\\n' : '' }}Заявка: {{ $('Ответ модели').item.json.title }}\nКомната: {{ $('Ответ модели').item.json.room }} · {{ $('Ответ модели').item.json.category }}\n{{ $('Ответ модели').item.json.summary }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Взять",
+                    "additionalFields": {
+                      "callback_data": "=take:{{ $('Ответ модели').item.json.id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "e696f220-a953-55d3-bbc7-f0b342e2cac5"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Модель",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Модель": {
+      "main": [
+        [
+          {
+            "node": "Ответ модели",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ответ модели": {
+      "main": [
+        [
+          {
+            "node": "Категория в базу",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Категория в базу": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}
