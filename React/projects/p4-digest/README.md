@@ -29,8 +29,8 @@
 
 [Начало дайджеста](telegram-daydzhest-1.png) · [Продолжение](telegram-daydzhest-2.png) · [Конец сообщения](telegram-daydzhest-3.png)
 
-## Что осталось для сдачи
+## Личная приёмка
 
-Автору работы осталось лично проверить три задания и записать решения в журнал. Критерии охватывают загрузку и порядок карточек, совместную работу поиска и фильтров, сохранение отметки после перезагрузки. [Задания для приёмки](https://github.com/Ilpaka/digest/tree/main/tasks).
+20 ноября 2026 года автор проверил опубликованный дайджест и принял все три задания. Свежие карточки идут первыми, ссылки открывают публикации, поиск «Samsung» работает вместе с тегом «смартфоны», а отметка «Прочитано» сохраняется после перезагрузки. [Решение по каждому заданию](https://github.com/Ilpaka/digest/blob/main/ai-log.md#личная-приёмка).
 
 [Условия проекта](https://maximbytecamp.github.io/angular_react_makarov/temy/49-proekt-daydzhest/index.html) · [Условия автоматизации](https://maximbytecamp.github.io/angular_react_makarov/temy/48-avtomatizaciya/index.html).

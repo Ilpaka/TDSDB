@@ -8,4 +8,4 @@
 | Поиск, тег и непрочитанные | [Коммит 2](https://github.com/Ilpaka/digest/commit/bc653da) |
 | Сохранение отметок | [Коммит 3](https://github.com/Ilpaka/digest/commit/03a784c) |
 
-[Полный журнал с результатами проверок и статусом личной приёмки](https://github.com/Ilpaka/digest/blob/main/ai-log.md) · [Исходные задания и критерии «Готово, когда»](https://github.com/Ilpaka/digest/tree/main/tasks).
+20 ноября 2026 года автор лично проверил опубликованный сайт и принял все три задания. [Результаты личной приёмки](https://github.com/Ilpaka/digest/blob/main/ai-log.md#личная-приёмка) · [Исходные задания и критерии «Готово, когда»](https://github.com/Ilpaka/digest/tree/main/tasks).
